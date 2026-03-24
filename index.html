@@ -1,476 +1,1010 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Info, 
-  ShoppingBag, 
-  Zap, 
-  Coins, 
-  HelpCircle, 
-  X, 
-  ChevronRight,
-  Package,
-  Trash2,
-  Sparkles
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>Mercantail - Pet Merge Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET & ROOT ── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  /* Woodoku warm wood palette */
+  --wood-light:#e8c07a;    /* light plank */
+  --wood-mid:  #c8894a;    /* mid plank */
+  --wood-dark: #8b5e2a;    /* dark grain */
+  --wood-deep: #5c3a10;    /* deep groove */
+  --board-bg:  #b07030;    /* board surface */
+  --board-slot:#7a4a1a;    /* empty slot carved */
+  --slot-inner:#6a3c10;    /* slot shadow */
 
-// --- Constants & Data Structures ---
+  /* Piper warm UI palette */
+  --bg:        #f5e6cc;    /* warm cream bg */
+  --bg2:       #eedfc0;    /* slightly darker cream */
+  --surface:   #fff8ee;    /* card surface */
+  --surface2:  #fff3e0;    /* alt card */
+  --terra:     #d4622a;    /* terracotta CTA */
+  --terra-l:   #e8773e;    /* terracotta light */
+  --terra-d:   #9a3a10;    /* terracotta shadow */
+  --olive:     #6b8c3a;    /* olive green */
+  --olive-l:   #88b04b;    /* olive light */
+  --olive-d:   #3a5010;    /* olive dark */
+  --honey:     #f0a830;    /* honey gold */
+  --honey-d:   #b07010;    /* honey dark */
+  --red-soft:  #e84848;
+  --red-d:     #a01818;
+  --blue-soft: #5b9fd4;
 
-const GRID_ROWS = 6;
-const GRID_COLS = 5;
-const MAX_ENERGY = 20;
+  /* text */
+  --ink:       #3a2010;    /* warm dark text */
+  --ink2:      #6b4828;    /* medium ink */
+  --ink3:      #9a7050;    /* muted ink */
+  --on-terra:  #fff8ee;
 
-const EVOLUTION_TREES = {
-  MEATY: [
-    { id: 'm1', emoji: '🥚', name: 'Egg', level: 1 },
-    { id: 'm2', emoji: '🍗', name: 'Wing', level: 2 },
-    { id: 'm3', emoji: '🥩', name: 'Beef', level: 3 },
-    { id: 'm4', emoji: '🍖', name: 'Prime Rib', level: 4 },
-    { id: 'm5', emoji: '🥓', name: 'Giant Ham', level: 5 }
-  ],
-  SEAFOOD: [
-    { id: 's1', emoji: '🦐', name: 'Shrimp', level: 1 },
-    { id: 's2', emoji: '🐟', name: 'Fish', level: 2 },
-    { id: 's3', emoji: '🍣', name: 'Sushi', level: 3 },
-    { id: 's4', emoji: '🍤', name: 'Tempura', level: 4 },
-    { id: 's5', emoji: '🦞', name: 'Lobster', level: 5 }
-  ],
-  GREENS: [
-    { id: 'gr1', emoji: '🥬', name: 'Leaf', level: 1 },
-    { id: 'gr2', emoji: '🥦', name: 'Broccoli', level: 2 },
-    { id: 'gr3', emoji: '🥕', name: 'Carrot', level: 3 },
-    { id: 'gr4', emoji: '🥗', name: 'Salad', level: 4 },
-    { id: 'gr5', emoji: '🎃', name: 'Pumpkin', level: 5 }
-  ],
-  GRAINS: [
-    { id: 'ga1', emoji: '🌾', name: 'Seed', level: 1 },
-    { id: 'ga2', emoji: '🌿', name: 'Sprout', level: 2 },
-    { id: 'ga3', emoji: '🌽', name: 'Corn', level: 3 },
-    { id: 'ga4', emoji: '🍞', name: 'Bread', level: 4 },
-    { id: 'ga5', emoji: '🌻', name: 'Sunflower', level: 5 }
-  ]
-};
-
-const PRODUCERS = [
-  { id: 'p1', name: 'Garden Pot', emoji: '🪴', trees: ['GREENS', 'GRAINS'], color: 'bg-green-100' },
-  { id: 'p2', name: 'Fresh Cooler', emoji: '🧊', trees: ['MEATY', 'SEAFOOD'], color: 'bg-blue-100' }
-];
-
-const PET_POOL = [
-  { name: 'Grumpy Bulldog', icon: '🐶' },
-  { name: 'Chic Cat', icon: '🐱' },
-  { name: 'Happy Bunny', icon: '🐰' },
-  { name: 'Singing Bird', icon: '🐦' },
-  { name: 'Slow Turtle', icon: '🐢' },
-  { name: 'Lucky Duck', icon: '🦆' },
-  { name: 'Wild Horse', icon: '🐴' },
-  { name: 'Tiny Hamster', icon: '🐹' }
-];
-
-const getRandomOrder = () => {
-  const pet = PET_POOL[Math.floor(Math.random() * PET_POOL.length)];
-  const treeKeys = Object.keys(EVOLUTION_TREES);
-  const randomTree = treeKeys[Math.floor(Math.random() * treeKeys.length)];
-  const levelIdx = Math.floor(Math.random() * 4); 
-  const item = EVOLUTION_TREES[randomTree][levelIdx];
-  
-  return {
-    id: Math.random().toString(36).substr(2, 9),
-    petName: pet.name,
-    petIcon: pet.icon,
-    request: item.id,
-    reward: (levelIdx + 1) * 25 + Math.floor(Math.random() * 10),
-    isCompleting: false
-  };
-};
-
-const createEmptyBoard = () => {
-  const board = Array(GRID_ROWS * GRID_COLS).fill(null);
-  board[25] = { ...PRODUCERS[0], isProducer: true, instanceId: Math.random() };
-  board[29] = { ...PRODUCERS[1], isProducer: true, instanceId: Math.random() };
-  return board;
-};
-
-export default function App() {
-  const [board, setBoard] = useState(createEmptyBoard());
-  const [energy, setEnergy] = useState(MAX_ENERGY);
-  const [gold, setGold] = useState(250);
-  const [orders, setOrders] = useState([getRandomOrder(), getRandomOrder(), getRandomOrder()]);
-  const [selectedIdx, setSelectedIdx] = useState(null);
-  const [draggedIdx, setDraggedIdx] = useState(null);
-  const [activeModal, setActiveModal] = useState(null);
-  const [notification, setNotification] = useState(null);
-  const [touchData, setTouchData] = useState({ x: 0, y: 0, active: false });
-  const gridRef = useRef(null);
-
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
-
-  const showMsg = (text) => setNotification(text);
-
-  const handleProducerClick = (idx) => {
-    if (energy <= 0) {
-      showMsg("Out of Energy!");
-      return;
-    }
-    const emptySlot = board.findIndex((cell) => cell === null);
-    if (emptySlot === -1) {
-      showMsg("Board is full!");
-      return;
-    }
-
-    const producer = board[idx];
-    const randomTreeKey = producer.trees[Math.floor(Math.random() * producer.trees.length)];
-    const newItem = { ...EVOLUTION_TREES[randomTreeKey][0], tree: randomTreeKey, instanceId: Math.random() };
-
-    const newBoard = [...board];
-    newBoard[emptySlot] = newItem;
-    setBoard(newBoard);
-    setEnergy(prev => prev - 1);
-    setSelectedIdx(emptySlot);
-  };
-
-  const processMergeOrMove = (sourceIdx, targetIdx) => {
-    if (sourceIdx === null || sourceIdx === targetIdx) return;
-    const source = board[sourceIdx];
-    const target = board[targetIdx];
-    if (source?.isProducer) return;
-
-    const newBoard = [...board];
-    if (target && !target.isProducer && source.id === target.id) {
-      const tree = EVOLUTION_TREES[source.tree];
-      const nextLevelIdx = tree.findIndex(item => item.id === source.id) + 1;
-      if (nextLevelIdx < tree.length) {
-        newBoard[targetIdx] = { ...tree[nextLevelIdx], tree: source.tree, instanceId: Math.random() };
-        newBoard[sourceIdx] = null;
-        setBoard(newBoard);
-        setSelectedIdx(targetIdx);
-        showMsg("Merge! ✨");
-      }
-    } else if (!target) {
-      newBoard[targetIdx] = source;
-      newBoard[sourceIdx] = null;
-      setBoard(newBoard);
-      setSelectedIdx(targetIdx);
-    }
-    setDraggedIdx(null);
-  };
-
-  const handleTouchStart = (e, idx) => {
-    const cell = board[idx];
-    if (!cell || cell.isProducer) return;
-    setDraggedIdx(idx);
-    setSelectedIdx(idx);
-    const touch = e.touches[0];
-    setTouchData({ x: touch.clientX, y: touch.clientY, active: true });
-  };
-
-  const handleTouchMove = (e) => {
-    if (!touchData.active) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    setTouchData(prev => ({ ...prev, x: touch.clientX, y: touch.clientY }));
-  };
-
-  const handleTouchEnd = (e) => {
-    if (!touchData.active || draggedIdx === null) return;
-    const touch = e.changedTouches[0];
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    const targetCell = element?.closest('[data-cell-idx]');
-    if (targetCell) {
-      const targetIdx = parseInt(targetCell.getAttribute('data-cell-idx'));
-      processMergeOrMove(draggedIdx, targetIdx);
-    }
-    setTouchData({ x: 0, y: 0, active: false });
-    setDraggedIdx(null);
-  };
-
-  const sellSelectedItem = () => {
-    if (selectedIdx === null) return;
-    const item = board[selectedIdx];
-    if (!item || item.isProducer) return;
-    const goldEarned = item.level;
-    setGold(prev => prev + goldEarned);
-    const newBoard = [...board];
-    newBoard[selectedIdx] = null;
-    setBoard(newBoard);
-    setSelectedIdx(null);
-    showMsg(`Sold for ${goldEarned}G`);
-  };
-
-  const buyEnergy = () => {
-    if (gold >= 100) {
-      setGold(prev => prev - 100);
-      setEnergy(prev => prev + 10);
-      setActiveModal(null);
-      showMsg("+10 Energy!");
-    } else {
-      showMsg("Need 100 Gold!");
-    }
-  };
-
-  const completeOrder = (orderId) => {
-    const order = orders.find(o => o.id === orderId);
-    const itemIdx = board.findIndex(cell => cell && cell.id === order.request);
-    
-    if (itemIdx !== -1) {
-      // Start completion animation
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, isCompleting: true } : o));
-      
-      setTimeout(() => {
-        const newBoard = [...board];
-        newBoard[itemIdx] = null;
-        setBoard(newBoard);
-        setGold(prev => prev + order.reward);
-        setOrders(prev => prev.map(o => o.id === orderId ? getRandomOrder() : o));
-        showMsg(`Success! +${order.reward}G 🐾`);
-      }, 600);
-    }
-  };
-
-  const selectedItem = selectedIdx !== null ? board[selectedIdx] : null;
-
-  return (
-    <div className="h-screen bg-[#FFF9F2] font-sans text-slate-800 select-none overflow-hidden flex flex-col items-center touch-none">
-      
-      {/* Header - Fixed Height */}
-      <header className="w-full max-w-md px-4 h-16 shrink-0 flex justify-between items-center bg-white/50 backdrop-blur-md z-20 border-b border-orange-100">
-        <div className="flex gap-1.5">
-          <div className="bg-white pl-1 pr-2 py-1 rounded-full shadow-sm flex items-center gap-1.5 border border-blue-100">
-            <div className="bg-blue-400 p-1 rounded-full">
-              <Zap className="w-3 h-3 text-white fill-white" />
-            </div>
-            <span className="font-bold text-[11px]">{energy}/20</span>
-          </div>
-          <div className="bg-white pl-1 pr-2 py-1 rounded-full shadow-sm flex items-center gap-1.5 border border-amber-100">
-            <div className="bg-amber-400 p-1 rounded-full">
-              <Coins className="w-3 h-3 text-white fill-white" />
-            </div>
-            <span className="font-bold text-[11px]">{gold}</span>
-          </div>
-        </div>
-        <div className="flex gap-1.5">
-          <button 
-            onClick={() => setActiveModal('shop')}
-            className="flex items-center gap-1.5 bg-[#FFB7B2] px-3 py-1 rounded-full text-white font-black text-[10px] shadow-md active:scale-95 transition-transform"
-          >
-            <ShoppingBag size={12} />
-            SHOP
-          </button>
-          <button onClick={() => setActiveModal('help')} className="w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400">
-            <Info size={14} />
-          </button>
-        </div>
-      </header>
-
-      {/* Content Container - Scrollable if needed, but designed to fit */}
-      <div className="w-full max-w-md flex flex-col flex-grow overflow-y-auto no-scrollbar pb-4">
-        
-        {/* Orders Section - Responsive Fit */}
-        <section className="px-4 pt-4 pb-2 shrink-0">
-          <div className="flex items-center justify-between mb-2 px-1">
-            <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-orange-300">Customer Requests</h2>
-            <div className="h-[1px] flex-grow mx-2 bg-orange-100"></div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 w-full">
-            {orders.map(order => {
-              const hasItem = board.some(cell => cell && cell.id === order.request);
-              const reqItem = Object.values(EVOLUTION_TREES).flat().find(i => i.id === order.request);
-              return (
-                <div 
-                  key={order.id} 
-                  className={`relative bg-white p-2 rounded-[20px] shadow-sm border flex flex-col items-center gap-1.5 transition-all duration-500 ${order.isCompleting ? 'scale-0 opacity-0 translate-y-[-20px]' : ''} ${hasItem ? 'border-green-400 bg-green-50/30 ring-1 ring-green-100' : 'border-white'}`}
-                >
-                  <div className="text-xl">{order.petIcon}</div>
-                  <div className="text-[8px] font-black text-slate-400 text-center truncate w-full uppercase leading-none">{order.petName.split(' ')[1]}</div>
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-2xl relative shadow-inner">
-                    {reqItem?.emoji}
-                  </div>
-                  <button 
-                    onClick={() => completeOrder(order.id)}
-                    className={`w-full py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${hasItem ? 'bg-green-500 text-white shadow-md active:scale-90' : 'bg-slate-100 text-slate-300 pointer-events-none'}`}
-                  >
-                    {hasItem ? 'Deliver' : 'Seeking'}
-                  </button>
-                  {order.isCompleting && <Sparkles className="absolute inset-0 m-auto text-amber-400 animate-ping" />}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Board Section - Stretches to fill available space */}
-        <main className="px-4 py-2 flex-grow flex items-center justify-center">
-          <div 
-            ref={gridRef}
-            className="w-full bg-[#EADDCB] p-2 rounded-[28px] shadow-inner grid grid-cols-5 gap-2 relative max-w-[360px]"
-          >
-            {board.map((cell, idx) => (
-              <div
-                key={idx}
-                data-cell-idx={idx}
-                onTouchStart={(e) => handleTouchStart(e, idx)}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onClick={() => {
-                  if (cell?.isProducer) handleProducerClick(idx);
-                  setSelectedIdx(idx);
-                }}
-                className={`
-                  aspect-square relative flex items-center justify-center text-3xl rounded-[14px] transition-all cursor-pointer overflow-hidden
-                  ${cell ? (cell.isProducer ? 'shadow-md border-b-4 border-slate-300' : 'bg-white shadow-sm') : 'bg-black/5'}
-                  ${selectedIdx === idx ? 'ring-[3px] ring-[#FFB7B2] bg-orange-50 z-10' : ''}
-                  ${cell?.color || 'bg-white'}
-                  ${draggedIdx === idx && touchData.active ? 'opacity-0' : 'active:scale-95'}
-                `}
-              >
-                <span className="pointer-events-none drop-shadow-sm">{cell?.emoji}</span>
-                {cell?.isProducer && (
-                  <div className="absolute top-0.5 right-0.5 bg-[#B2E2F2] w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">
-                    <Zap className="w-2 h-2 text-white fill-white" />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Floating Ghost for Touch Feedback */}
-            {touchData.active && draggedIdx !== null && board[draggedIdx] && (
-              <div 
-                style={{ position: 'fixed', left: touchData.x - 20, top: touchData.y - 40, zIndex: 100, pointerEvents: 'none' }}
-                className="text-4xl animate-bounce"
-              >
-                {board[draggedIdx].emoji}
-              </div>
-            )}
-          </div>
-        </main>
-
-        {/* Inspector Box - Non-fixed to ensure scrollability on small screens */}
-        <footer className="px-4 pt-2 shrink-0">
-          <div className="bg-white p-3.5 rounded-[24px] shadow-lg border border-slate-100 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center text-2xl shadow-inner transition-colors ${selectedItem ? 'bg-orange-50' : 'bg-slate-50'}`}>
-                  {selectedItem ? selectedItem.emoji : <Package className="w-5 h-5 text-slate-200" />}
-                </div>
-                <div>
-                  <div className="font-black text-slate-700 uppercase text-xs tracking-tight truncate max-w-[120px]">
-                    {selectedItem ? selectedItem.name : "Tap an item"}
-                  </div>
-                  <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                    {selectedItem?.isProducer ? "Generator" : (selectedItem ? `Level ${selectedItem.level} • ${selectedItem.tree}` : "Inspect your items")}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                {selectedItem && !selectedItem.isProducer && (
-                  <>
-                    <button 
-                      onClick={() => setActiveModal('evolution')}
-                      className="w-10 h-10 bg-blue-50 flex items-center justify-center rounded-2xl text-blue-500 active:scale-90 transition-transform"
-                    >
-                      <HelpCircle size={18} />
-                    </button>
-                    <button 
-                      onClick={sellSelectedItem}
-                      className="bg-slate-50 px-4 h-10 rounded-2xl flex items-center gap-2 border border-slate-100 active:scale-90 transition-transform hover:bg-red-50 hover:text-red-500"
-                    >
-                      <Trash2 size={14} className="text-slate-400" />
-                      <span className="font-black text-[10px] text-slate-600 uppercase">{selectedItem.level}G</span>
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
-
-      {/* Modals & Overlays */}
-      {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/60 backdrop-blur-md touch-auto">
-          <div className="bg-white w-full max-w-sm rounded-[36px] shadow-2xl animate-in zoom-in duration-300">
-            <div className="p-7">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest italic">
-                  {activeModal === 'help' && 'Pet Shop Manual'}
-                  {activeModal === 'evolution' && 'Growth Path'}
-                  {activeModal === 'shop' && 'Supplies'}
-                </h3>
-                <button onClick={() => setActiveModal(null)} className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
-                  <X size={16} />
-                </button>
-              </div>
-
-              {activeModal === 'help' && (
-                <div className="space-y-3">
-                  {['Tap Pots to spawn items.', 'Merge same items to grow.', 'Fulfill pet orders for Gold.'].map((t, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                      <div className="bg-orange-100 w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] text-orange-500">{i+1}</div>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase">{t}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {activeModal === 'evolution' && selectedItem && (
-                <div className="py-2 flex flex-col items-center gap-4">
-                   <div className="flex flex-wrap justify-center items-center gap-1.5">
-                    {EVOLUTION_TREES[selectedItem.tree].map((step, i) => (
-                      <React.Fragment key={step.id}>
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg border-2 transition-all ${step.id === selectedItem.id ? 'bg-orange-100 border-orange-400 scale-110 shadow-md' : 'bg-slate-50 border-transparent opacity-30'}`}>
-                          {step.emoji}
-                        </div>
-                        {i < 4 && <ChevronRight className="text-slate-200" size={10} />}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
-                    Category: {selectedItem.tree}
-                  </p>
-                </div>
-              )}
-
-              {activeModal === 'shop' && (
-                <div className="bg-blue-50/50 rounded-[30px] p-6 flex flex-col items-center gap-5 border border-blue-100">
-                  <Zap className="w-12 h-12 text-blue-400 fill-blue-400 drop-shadow-md" />
-                  <div className="text-center">
-                    <h4 className="font-black text-slate-700 uppercase tracking-tight text-sm">Energy Refill</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">+10 Zaps to keep moving!</p>
-                  </div>
-                  <button 
-                    onClick={buyEnergy}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-3 rounded-2xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 active:scale-95 uppercase text-xs"
-                  >
-                    <Coins size={14} className="fill-white" />
-                    100 GOLD
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toast Notification */}
-      {notification && (
-        <div className="fixed top-20 z-[100] animate-in slide-in-from-top-full duration-500 pointer-events-none">
-          <div className="bg-slate-800/90 backdrop-blur shadow-xl text-white px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-            <Sparkles size={10} className="text-amber-300" />
-            {notification}
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body { overflow: hidden; overscroll-behavior-y: contain; position: fixed; width: 100%; height: 100%; }
-        * { -webkit-tap-highlight-color: transparent; }
-      `}</style>
-    </div>
-  );
+  --font-h:'Nunito',sans-serif;
+  --font-b:'Nunito Sans',sans-serif;
+  --r-sm:8px;--r-md:12px;--r-lg:18px;--r-xl:24px;
 }
+
+html,body{
+  height:100%;
+  background:var(--bg2);
+  font-family:var(--font-b);
+  overflow:hidden; /* outer body locked */
+}
+
+/* ── APP SHELL ── */
+#app{
+  height:100%;
+  max-width:430px;
+  margin:0 auto;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  overflow:hidden; /* fixed header/footer outside scroll */
+}
+
+/* ── HEADER (fixed, outside scroll) ── */
+#header{
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px 8px;
+  background:linear-gradient(180deg,#fff8ee 0%,#f5e6cc 100%);
+  border-bottom:2px solid var(--wood-light);
+  box-shadow:0 2px 8px rgba(90,40,10,.12);
+  z-index:20;
+  position:relative;
+}
+.logo{
+  font-family:var(--font-h);font-size:17px;font-weight:900;
+  color:var(--terra);letter-spacing:.02em;
+  text-shadow:0 1px 0 rgba(255,255,255,.7);
+}
+.logo span{color:var(--olive);}
+
+.hud-row{display:flex;gap:6px;}
+.hud-chip{
+  display:flex;align-items:center;gap:5px;
+  background:var(--surface);border:1.5px solid var(--wood-light);
+  border-radius:20px;padding:4px 10px 4px 5px;
+  box-shadow:0 1px 4px rgba(90,40,10,.1);
+}
+.hud-icon{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  flex-shrink:0;
+}
+.hud-icon.zap{background:linear-gradient(135deg,#7bc8f0,#3a80c0);}
+.hud-icon.coin{background:linear-gradient(135deg,var(--honey),var(--honey-d));}
+.hud-val{
+  font-family:var(--font-h);font-size:13px;font-weight:800;
+  color:var(--ink);
+}
+
+.hdr-btns{display:flex;gap:6px;}
+.btn-shop{
+  height:32px;border:none;border-radius:20px;cursor:pointer;
+  font-family:var(--font-h);font-size:11px;font-weight:800;
+  padding:0 12px;display:flex;align-items:center;gap:4px;
+  background:linear-gradient(180deg,var(--terra-l) 0%,var(--terra) 100%);
+  border-bottom:3px solid var(--terra-d);color:var(--on-terra);
+  box-shadow:0 2px 6px rgba(160,60,20,.3);
+  transition:transform .08s;letter-spacing:.03em;
+}
+.btn-shop:active{transform:scale(0.93) translateY(1px);border-bottom-width:1px;}
+.btn-info{
+  width:32px;height:32px;border:1.5px solid var(--wood-light);border-radius:50%;
+  background:var(--surface);color:var(--ink2);font-size:16px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .08s;
+}
+.btn-info:active{transform:scale(0.9);}
+
+/* ── SCROLL CONTAINER ── */
+#scroll-body{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:env(safe-area-inset-bottom, 16px);
+}
+#scroll-body::-webkit-scrollbar{display:none;}
+
+/* ── ORDERS ── */
+#orders-section{
+  padding:12px 12px 8px;
+}
+.section-label{
+  font-family:var(--font-h);font-size:9px;font-weight:800;
+  color:var(--ink3);text-transform:uppercase;letter-spacing:.18em;
+  margin-bottom:8px;display:flex;align-items:center;gap:6px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--wood-light);}
+
+.orders-row{display:flex;gap:8px;}
+.order-card{
+  flex:1;min-width:0;
+  background:var(--surface);
+  border:2px solid #e8d0b0;
+  border-radius:var(--r-lg);
+  border-bottom:3px solid #c8a870;
+  padding:8px 5px 7px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  cursor:pointer;transition:all .3s;position:relative;overflow:hidden;
+  box-shadow:0 2px 8px rgba(90,40,10,.08);
+}
+.order-card.has-item{
+  border-color:var(--olive-l);border-bottom-color:var(--olive-d);
+  background:#f0f8e8;box-shadow:0 2px 12px rgba(100,160,50,.2);
+}
+.order-card.completing{
+  transform:scale(0) translateY(-20px);opacity:0;pointer-events:none;
+}
+.order-pet{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#fff3d8,#ffe0a8);
+  border:2px solid var(--wood-light);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:0 2px 4px rgba(90,40,10,.1);
+}
+.order-name{
+  font-family:var(--font-h);font-size:8px;font-weight:800;
+  color:var(--ink2);text-align:center;line-height:1.1;
+  max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.order-item-slot{
+  width:36px;height:36px;border-radius:var(--r-sm);
+  background:var(--bg2);border:2px solid #d8c090;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:inset 0 2px 4px rgba(90,40,10,.1);
+}
+.order-reward{
+  font-family:var(--font-h);font-size:10px;font-weight:900;
+  color:var(--honey-d);display:flex;align-items:center;gap:2px;
+}
+.order-btn{
+  width:100%;padding:5px 0;border:none;border-radius:6px;cursor:pointer;
+  font-family:var(--font-h);font-size:9px;font-weight:800;
+  letter-spacing:.04em;text-transform:uppercase;transition:transform .08s;
+}
+.order-btn:active{transform:scale(0.93);}
+.order-btn.ready{
+  background:linear-gradient(180deg,var(--olive-l),var(--olive));
+  border-bottom:2px solid var(--olive-d);color:#fff;
+}
+.order-btn.waiting{background:#e8d8c0;color:#b09070;pointer-events:none;}
+
+/* ── BOARD WRAPPER ── */
+#board-wrap{
+  padding:8px 12px 10px;
+  display:flex;justify-content:center;
+}
+
+/* ── BOARD — Woodoku warm wood ── */
+#board{
+  width:100%;max-width:360px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      var(--wood-mid) 0px,
+      var(--wood-light) 12px,
+      var(--wood-mid) 24px,
+      var(--wood-dark) 36px
+    );
+  border-radius:var(--r-xl);
+  padding:10px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:6px;
+  border:3px solid var(--wood-deep);
+  box-shadow:
+    0 6px 20px rgba(60,30,0,.35),
+    inset 0 1px 0 rgba(255,230,180,.3),
+    inset 0 -2px 4px rgba(0,0,0,.2);
+  position:relative;
+  touch-action: none; /* Add this */
+  user-select: none;  /* Add this */
+
+}
+/* plank screw dots */
+#board::before,#board::after{
+  content:'';position:absolute;width:10px;height:10px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#a07040,#5c3010);
+  border:1px solid var(--wood-deep);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.4);
+}
+#board::before{top:6px;left:6px;}
+#board::after{bottom:6px;right:6px;}
+
+/* ── CELLS ── */
+.cell{
+  aspect-ratio:1;border-radius:var(--r-md);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;cursor:pointer;
+  font-size:clamp(18px,5vw,24px);
+  transition:transform .1s,box-shadow .1s;
+}
+/* empty — carved slot */
+.cell.empty{
+  background:
+    radial-gradient(ellipse at center, var(--slot-inner) 0%, var(--board-slot) 100%);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.45),inset 0 1px 2px rgba(0,0,0,.3);
+  border:1px solid rgba(0,0,0,.2);
+}
+/* filled — cream ivory block sitting in groove */
+.cell.filled{
+  background:linear-gradient(160deg,#fffaf0 0%,#f5e8d0 100%);
+  border:1.5px solid #e0c890;
+  border-bottom:4px solid #c0a060;
+  border-right:2px solid #d0b070;
+  box-shadow:0 3px 7px rgba(90,40,10,.25),inset 0 1px 0 rgba(255,255,255,.9);
+  cursor:grab;
+  touch-action: none; /* Add this */
+
+}
+.cell.filled:active{cursor:grabbing;}
+/* producer — darker wood panel with glow */
+.cell.producer{
+  background:linear-gradient(160deg,var(--wood-mid),var(--wood-dark));
+  border:1.5px solid var(--wood-light);
+  border-bottom:4px solid var(--wood-deep);
+  box-shadow:0 3px 8px rgba(0,0,0,.3);
+  cursor:pointer;
+}
+.cell.producer:active{transform:scale(0.92) translateY(2px);box-shadow:0 1px 3px rgba(0,0,0,.3);}
+
+/* selected ring */
+.cell.selected{
+  outline:3px solid var(--honey);
+  outline-offset:1px;
+  box-shadow:0 0 0 5px rgba(240,168,48,.25),0 3px 7px rgba(90,40,10,.25);
+}
+/* drag feedback */
+.cell.dragging{opacity:0.15;}
+.cell.drag-over{
+  outline:3px dashed var(--olive-l);
+  outline-offset:1px;
+  background:rgba(107,140,58,.15) !important;
+}
+/* animations */
+.cell.merge-pop{animation:merge-pop .35s ease;}
+@keyframes merge-pop{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.22)}
+  70%{transform:scale(.92)}
+  100%{transform:scale(1)}
+}
+.cell.wrong-drop{animation:wrong-shake .25s ease;}
+@keyframes wrong-shake{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  75%{transform:translateX(5px)}
+  100%{transform:translateX(0)}
+}
+
+/* cell decorations */
+.cell-level{
+  position:absolute;bottom:2px;right:3px;
+  font-family:var(--font-h);font-size:7px;font-weight:900;
+  color:rgba(90,40,10,.5);line-height:1;
+}
+.producer-badge{
+  position:absolute;top:3px;right:3px;
+  width:14px;height:14px;border-radius:50%;
+  background:linear-gradient(135deg,#7bc8f0,#3a80c0);
+  border:1.5px solid #fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:7px;color:#fff;font-weight:900;
+}
+
+/* ── INSPECTOR ── */
+#inspector{
+  margin:0 12px 10px;
+  background:var(--surface);
+  border:2px solid #e0c890;
+  border-bottom:3px solid #c8a870;
+  border-radius:var(--r-xl);
+  padding:10px 12px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 3px 10px rgba(90,40,10,.1);
+}
+.insp-icon{
+  width:46px;height:46px;border-radius:var(--r-md);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  background:var(--bg2);border:2px solid #d8c090;
+  box-shadow:inset 0 2px 4px rgba(90,40,10,.08);
+  transition:background .2s;
+}
+.insp-icon.active{
+  background:linear-gradient(135deg,#fff8d8,#ffe8a0);
+  border-color:var(--honey);
+}
+.insp-text{flex:1;min-width:0;}
+.insp-name{
+  font-family:var(--font-h);font-size:13px;font-weight:800;
+  color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.insp-sub{font-size:10px;color:var(--ink3);font-weight:600;margin-top:1px;}
+.insp-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.insp-btn{
+  height:34px;border:none;border-radius:var(--r-sm);cursor:pointer;
+  font-family:var(--font-h);font-size:10px;font-weight:800;
+  display:flex;align-items:center;gap:4px;padding:0 10px;
+  transition:transform .08s;white-space:nowrap;
+}
+.insp-btn:active{transform:scale(0.9);}
+.btn-evo{background:#e8f0ff;border:1.5px solid #b0c8f0;color:var(--blue-soft);}
+.btn-sell{background:#fff0f0;border:1.5px solid #f0b0b0;color:var(--red-soft);}
+
+/* ── DRAG GHOST ── */
+#drag-ghost{
+  position:fixed;pointer-events:none;z-index:500;
+  font-size:36px;
+  transform:translate(-50%,-70%);
+  filter:drop-shadow(0 4px 8px rgba(90,40,10,.5));
+  display:none;
+  will-change:transform;
+}
+
+/* ── MODAL ── */
+#modal-overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(60,30,10,.6);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+#modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--surface);
+  border:2px solid #e0c890;
+  border-radius:var(--r-xl);
+  width:100%;max-width:340px;
+  box-shadow:0 16px 48px rgba(60,30,10,.4);
+  transform:scale(.92);transition:transform .2s;
+  overflow:hidden;
+}
+#modal-overlay.open .modal{transform:scale(1);}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;
+  background:linear-gradient(180deg,#fff8ee,#f5e6cc);
+  border-bottom:2px solid var(--wood-light);
+}
+.modal-title{
+  font-family:var(--font-h);font-size:14px;font-weight:900;
+  color:var(--terra);text-transform:uppercase;letter-spacing:.07em;
+}
+.modal-close{
+  width:28px;height:28px;border-radius:50%;border:1.5px solid #e0c890;
+  background:var(--bg2);color:var(--ink2);font-size:14px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .08s;
+}
+.modal-close:active{transform:scale(0.9);}
+.modal-body{padding:16px 16px 20px;}
+
+/* evolution chain */
+.evo-chain{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;margin-bottom:14px;}
+.evo-step{
+  width:48px;height:48px;border-radius:var(--r-md);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:var(--bg2);border:2px solid #d8c090;opacity:.3;transition:all .2s;
+}
+.evo-step.done{opacity:.65;border-color:var(--olive-l);}
+.evo-step.current{
+  opacity:1;border-color:var(--honey);border-width:2.5px;
+  background:linear-gradient(135deg,#fff8d8,#ffe8a0);
+  box-shadow:0 0 14px rgba(240,168,48,.4);
+  transform:scale(1.12);
+}
+.evo-arrow{font-size:10px;color:var(--ink3);}
+.evo-label{
+  text-align:center;font-family:var(--font-h);font-size:11px;font-weight:800;
+  color:var(--ink2);background:var(--bg2);border-radius:20px;padding:4px 14px;
+  border:1.5px solid #d8c090;display:inline-block;
+}
+
+/* shop */
+.shop-hero{
+  background:linear-gradient(135deg,#fff8d8,#ffe8a0);
+  border:2px solid var(--honey);border-radius:var(--r-lg);
+  padding:20px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  margin-bottom:12px;
+}
+.shop-zap{font-size:42px;}
+.shop-title{font-family:var(--font-h);font-size:15px;font-weight:900;color:var(--ink);}
+.shop-sub{font-size:11px;color:var(--ink2);text-align:center;}
+.btn-buy{
+  width:100%;padding:14px;border:none;border-radius:var(--r-md);cursor:pointer;
+  font-family:var(--font-h);font-size:14px;font-weight:900;
+  background:linear-gradient(180deg,var(--terra-l),var(--terra));
+  border-bottom:4px solid var(--terra-d);color:var(--on-terra);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 14px rgba(160,60,20,.25);
+  transition:transform .08s;text-transform:uppercase;letter-spacing:.05em;
+}
+.btn-buy:active{transform:scale(0.96) translateY(2px);border-bottom-width:1px;}
+
+/* help */
+.help-step{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg2);border:1.5px solid #d8c090;
+  border-radius:var(--r-md);padding:10px 12px;margin-bottom:8px;
+}
+.help-num{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--terra-l),var(--terra));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-h);font-size:11px;font-weight:900;color:#fff;
+}
+.help-txt{font-size:12px;font-weight:600;color:var(--ink2);line-height:1.4;}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;top:68px;left:50%;transform:translateX(-50%) translateY(-8px);
+  background:var(--ink);color:var(--wood-light);
+  font-family:var(--font-h);font-size:12px;font-weight:800;
+  padding:7px 18px;border-radius:20px;
+  opacity:0;pointer-events:none;z-index:200;
+  transition:all .2s;white-space:nowrap;
+  box-shadow:0 4px 14px rgba(60,30,10,.35);
+  border:1.5px solid rgba(255,200,120,.3);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── PARTICLES ── */
+.spark{
+  position:fixed;pointer-events:none;z-index:300;
+  width:7px;height:7px;border-radius:50%;
+  animation:spark-out .55s ease-out forwards;
+}
+@keyframes spark-out{
+  0%{opacity:1;transform:translate(0,0) scale(1);}
+  100%{opacity:0;transform:var(--to) scale(0);}
+}
+.coin-up{
+  position:fixed;pointer-events:none;z-index:300;
+  font-family:var(--font-h);font-size:13px;font-weight:900;
+  color:var(--honey-d);
+  text-shadow:0 1px 3px rgba(255,255,255,.8);
+  animation:float-up .9s ease-out forwards;
+}
+@keyframes float-up{
+  0%{opacity:1;transform:translateY(0);}
+  100%{opacity:0;transform:translateY(-48px);}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="logo">🐾 Mercantail</div>
+    <div class="hud-row">
+      <div class="hud-chip">
+        <div class="hud-icon zap">⚡</div>
+        <div class="hud-val" id="energy-val">20</div>
+      </div>
+      <div class="hud-chip">
+        <div class="hud-icon coin">🪙</div>
+        <div class="hud-val" id="gold-val">250</div>
+      </div>
+    </div>
+    <div class="hdr-btns">
+      <button class="btn-shop" onclick="openModal('shop')">🛒 Shop</button>
+      <button class="btn-info" onclick="openModal('help')">？</button>
+    </div>
+  </header>
+
+  <!-- SCROLLABLE BODY -->
+  <div id="scroll-body">
+
+    <!-- ORDERS -->
+    <section id="orders-section">
+      <div class="section-label">🐾 Customer Requests</div>
+      <div class="orders-row" id="orders-row"></div>
+    </section>
+
+    <!-- BOARD -->
+    <div id="board-wrap">
+      <div id="board"></div>
+    </div>
+
+    <!-- INSPECTOR -->
+    <div id="inspector">
+      <div class="insp-icon" id="insp-icon">📦</div>
+      <div class="insp-text">
+        <div class="insp-name" id="insp-name">Tap a producer to start</div>
+        <div class="insp-sub" id="insp-sub">Drag items to merge them</div>
+      </div>
+      <div class="insp-actions" id="insp-actions"></div>
+    </div>
+
+  </div><!-- /scroll-body -->
+</div><!-- /app -->
+
+<!-- DRAG GHOST -->
+<div id="drag-ghost"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Info</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" id="toast-msg"></div>
+
+<script>
+/* ══════════════════════════════════════
+   DATA
+══════════════════════════════════════ */
+const TREES = {
+  MEATY:  [{id:'m1',e:'🥚',n:'Egg',lv:1},{id:'m2',e:'🍗',n:'Wing',lv:2},{id:'m3',e:'🥩',n:'Beef',lv:3},{id:'m4',e:'🍖',n:'Prime Rib',lv:4},{id:'m5',e:'🥓',n:'Giant Ham',lv:5}],
+  SEAFOOD:[{id:'s1',e:'🦐',n:'Shrimp',lv:1},{id:'s2',e:'🐟',n:'Fish',lv:2},{id:'s3',e:'🍣',n:'Sushi',lv:3},{id:'s4',e:'🍤',n:'Tempura',lv:4},{id:'s5',e:'🦞',n:'Lobster',lv:5}],
+  GREENS: [{id:'g1',e:'🥬',n:'Leaf',lv:1},{id:'g2',e:'🥦',n:'Broccoli',lv:2},{id:'g3',e:'🥕',n:'Carrot',lv:3},{id:'g4',e:'🥗',n:'Salad',lv:4},{id:'g5',e:'🎃',n:'Pumpkin',lv:5}],
+  GRAINS: [{id:'r1',e:'🌾',n:'Seed',lv:1},{id:'r2',e:'🌿',n:'Sprout',lv:2},{id:'r3',e:'🌽',n:'Corn',lv:3},{id:'r4',e:'🍞',n:'Bread',lv:4},{id:'r5',e:'🌻',n:'Sunflower',lv:5}]
+};
+const PRODUCERS = [
+  {id:'pg',n:'Garden Pot',e:'🪴',trees:['GREENS','GRAINS'],isProducer:true},
+  {id:'pc',n:'Fresh Cooler',e:'🧊',trees:['MEATY','SEAFOOD'],isProducer:true}
+];
+const PETS=[
+  {n:'Grumpy Bulldog',e:'🐶'},{n:'Chic Cat',e:'🐱'},{n:'Happy Bunny',e:'🐰'},
+  {n:'Singing Bird',e:'🐦'},{n:'Slow Turtle',e:'🐢'},{n:'Lucky Duck',e:'🦆'},
+  {n:'Wild Horse',e:'🐴'},{n:'Tiny Hamster',e:'🐹'}
+];
+
+const ROWS=6,COLS=5,MAX_E=20;
+
+/* ── STATE ── */
+let board = Array(ROWS*COLS).fill(null);
+board[25]={...PRODUCERS[0],iid:uid()};
+board[29]={...PRODUCERS[1],iid:uid()};
+let energy=MAX_E, gold=250;
+let orders=[rndOrder(),rndOrder(),rndOrder()];
+let selIdx=null;
+
+function uid(){return Math.random().toString(36).slice(2);}
+function allItems(){return Object.values(TREES).flat();}
+function itemById(id){return allItems().find(x=>x.id===id);}
+function treeKeyOf(id){return Object.entries(TREES).find(([,arr])=>arr.find(x=>x.id===id))?.[0];}
+function rndOrder(){
+  const pet=PETS[Math.floor(Math.random()*PETS.length)];
+  const tKey=Object.keys(TREES)[Math.floor(Math.random()*4)];
+  const li=Math.floor(Math.random()*4);
+  const item=TREES[tKey][li];
+  return{id:uid(),petE:pet.e,petN:pet.n,reqId:item.id,reward:(li+1)*25+Math.floor(Math.random()*10),completing:false};
+}
+
+/* ══════════════════════════════════════
+   RENDER
+══════════════════════════════════════ */
+function render(){
+  document.getElementById('energy-val').textContent=energy+'/'+MAX_E;
+  document.getElementById('gold-val').textContent=gold;
+  renderOrders(); renderBoard(); renderInspector();
+}
+
+function renderOrders(){
+  const row=document.getElementById('orders-row');
+  row.innerHTML='';
+  orders.forEach(o=>{
+    const ri=itemById(o.reqId);
+    const has=board.some(c=>c&&!c.isProducer&&c.id===o.reqId);
+    const card=document.createElement('div');
+    card.className='order-card'+(has?' has-item':'')+(o.completing?' completing':'');
+    card.innerHTML=`
+      <div class="order-pet">${o.petE}</div>
+      <div class="order-name">${o.petN.split(' ').slice(-1)[0]}</div>
+      <div class="order-item-slot">${ri?.e||'?'}</div>
+      <div class="order-reward">🪙${o.reward}g</div>
+      <button class="order-btn ${has?'ready':'waiting'}" data-oid="${o.id}">${has?'Deliver!':'Seeking…'}</button>
+    `;
+    if(has) card.querySelector('button').addEventListener('click',()=>deliverOrder(o.id));
+    row.appendChild(card);
+  });
+}
+
+function renderBoard(){
+  const boardEl=document.getElementById('board');
+  boardEl.innerHTML='';
+  board.forEach((cell,idx)=>{
+    const div=document.createElement('div');
+    let cls='cell ';
+    if(!cell) cls+='empty';
+    else if(cell.isProducer) cls+='producer';
+    else cls+='filled';
+    if(selIdx===idx) cls+=' selected';
+    div.className=cls.trim();
+    div.dataset.idx=idx;
+
+    if(cell){
+      const span=document.createElement('span');
+      span.textContent=cell.e;
+      span.style.pointerEvents='none';
+      div.appendChild(span);
+      if(cell.isProducer){
+        const badge=document.createElement('div');
+        badge.className='producer-badge';badge.textContent='⚡';
+        div.appendChild(badge);
+      } else {
+        const lv=document.createElement('div');
+        lv.className='cell-level';lv.textContent='Lv'+cell.lv;
+        div.appendChild(lv);
+      }
+    }
+
+    // click: producer OR select
+    div.addEventListener('click',()=>{
+      if(cell?.isProducer){produceItem(idx);return;}
+      selIdx=(selIdx===idx)?null:idx;
+      renderBoard();renderInspector();
+    });
+
+    // DRAG SOURCE events (touch & mouse)
+    if(cell&&!cell.isProducer){
+      div.addEventListener('mousedown', e=>startDrag(e,idx,'mouse'));
+      div.addEventListener('touchstart', e=>startDrag(e,idx,'touch'),{passive:false});
+    }
+    // DROP TARGET
+    div.addEventListener('dragover', e=>{e.preventDefault();div.classList.add('drag-over');});
+    div.addEventListener('dragleave', ()=>div.classList.remove('drag-over'));
+    div.addEventListener('drop', e=>{e.preventDefault();div.classList.remove('drag-over');dropOn(idx);});
+
+    boardEl.appendChild(div);
+  });
+}
+
+function renderInspector(){
+  const item=selIdx!==null?board[selIdx]:null;
+  const icon=document.getElementById('insp-icon');
+  const name=document.getElementById('insp-name');
+  const sub=document.getElementById('insp-sub');
+  const acts=document.getElementById('insp-actions');
+  if(item){
+    icon.textContent=item.e; icon.className='insp-icon active';
+    name.textContent=item.n||item.name;
+    if(item.isProducer){
+      sub.textContent='Generator · Tap to produce';acts.innerHTML='';
+    } else {
+      const tKey=item.tree||treeKeyOf(item.id);
+      sub.textContent=`Lv${item.lv} · ${tKey}`;
+      acts.innerHTML=`
+        <button class="insp-btn btn-evo" onclick="openModal('evo')">🌱 Path</button>
+        <button class="insp-btn btn-sell" onclick="sellItem()">💰 ${item.lv}g</button>
+      `;
+    }
+  } else {
+    icon.textContent='📦';icon.className='insp-icon';
+    name.textContent='Tap a producer to start';
+    sub.textContent='Drag items onto each other to merge';
+    acts.innerHTML='';
+  }
+}
+
+/* ══════════════════════════════════════
+   GAME LOGIC
+══════════════════════════════════════ */
+function produceItem(idx){
+  if(energy<=0){toast('⚡ Out of Energy!');return;}
+  const empty=board.findIndex(c=>c===null);
+  if(empty===-1){toast('🪵 Board is full!');return;}
+  const p=board[idx];
+  const tKey=p.trees[Math.floor(Math.random()*p.trees.length)];
+  board[empty]={...TREES[tKey][0],tree:tKey,iid:uid()};
+  energy--;selIdx=empty;
+  render();animPop(empty);
+}
+
+function doMerge(srcIdx,tgtIdx){
+  const src=board[srcIdx];
+  const tKey=src.tree||treeKeyOf(src.id);
+  const tree=TREES[tKey];
+  const ci=tree.findIndex(x=>x.id===src.id);
+  if(ci<tree.length-1){
+    hapticSuccess();
+    board[tgtIdx]={...tree[ci+1],tree:tKey,iid:uid()};
+    board[srcIdx]=null;
+    selIdx=tgtIdx;
+    render();
+    animPop(tgtIdx);
+    sparkBurst(tgtIdx);
+    toast('✨ Merged to '+tree[ci+1].n+'!');
+    return true;
+  }
+  return false;
+}
+
+function doMove(srcIdx,tgtIdx){
+  board[tgtIdx]=board[srcIdx];board[srcIdx]=null;
+  selIdx=tgtIdx;render();
+}
+
+function dropOn(tgtIdx){
+  if(dragSrcIdx===null||dragSrcIdx===tgtIdx){endDrag();return;}
+  const src=board[dragSrcIdx];
+  const tgt=board[tgtIdx];
+  if(!src||src.isProducer){endDrag();return;}
+  if(tgt&&!tgt.isProducer&&src.id===tgt.id){
+    doMerge(dragSrcIdx,tgtIdx);
+  } else if(!tgt){
+    doMove(dragSrcIdx,tgtIdx);
+  } else {
+    animWrong(tgtIdx);
+  }
+  endDrag();
+}
+
+function sellItem(){
+  if(selIdx===null)return;
+  const item=board[selIdx];
+  if(!item||item.isProducer)return;
+  floatCoin(selIdx,item.lv);
+  gold+=item.lv;board[selIdx]=null;selIdx=null;
+  render();toast('Sold for '+item.lv+'g!');
+}
+
+function deliverOrder(oid){
+  const order=orders.find(o=>o.id===oid);if(!order)return;
+  const itemIdx=board.findIndex(c=>c&&!c.isProducer&&c.id===order.reqId);
+  if(itemIdx===-1){toast('Item not on board!');return;}
+  orders=orders.map(o=>o.id===oid?{...o,completing:true}:o);
+  renderOrders();
+  setTimeout(()=>{
+    board[itemIdx]=null;gold+=order.reward;
+    hapticSuccess();
+    orders=orders.map(o=>o.id===oid?rndOrder():o);
+    render();sparkBurstCenter();
+    toast('🎉 Delivered! +'+order.reward+'g');
+  },480);
+}
+
+/* ══════════════════════════════════════
+   DRAG & DROP  (mouse + touch unified)
+══════════════════════════════════════ */
+let dragSrcIdx=null;
+let dragMode=null; // 'mouse'|'touch'
+const ghost=document.getElementById('drag-ghost');
+
+function startDrag(e,idx,mode){
+  if(board[idx]?.isProducer)return;
+  hapticTick();
+  e.preventDefault();
+  dragSrcIdx=idx; dragMode=mode; selIdx=idx;
+  ghost.textContent=board[idx].e;
+  ghost.style.display='block';
+  moveGhost(mode==='touch'?e.touches[0].clientX:e.clientX,
+            mode==='touch'?e.touches[0].clientY:e.clientY);
+  renderBoard();
+
+  if(mode==='mouse'){
+    document.addEventListener('mousemove',onMouseMove);
+    document.addEventListener('mouseup',onMouseUp);
+  } else {
+    document.addEventListener('touchmove',onTouchMove,{passive:false});
+    document.addEventListener('touchend',onTouchEnd);
+  }
+}
+
+function onMouseMove(e){moveGhost(e.clientX,e.clientY);}
+function onTouchMove(e) {
+  if (dragSrcIdx === null) return;
+  // Prevent the page from scrolling while dragging
+  e.preventDefault(); 
+  
+  const touch = e.touches[0];
+  moveGhost(touch.clientX, touch.clientY);
+  
+  // Find the element currently under the finger
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const cell = el?.closest('.cell');
+  
+  clearDragOver();
+  if (cell) {
+    cell.classList.add('drag-over');
+  }
+}
+function onMouseUp(e){
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const cell=el?.closest('[data-idx]');
+  if(cell) dropOn(parseInt(cell.dataset.idx));
+  else endDrag();
+  clearDragOver();
+  document.removeEventListener('mousemove',onMouseMove);
+  document.removeEventListener('mouseup',onMouseUp);
+}
+function onTouchEnd(e) {
+  const t = e.changedTouches[0];
+  // Determine final drop location
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  const cell = el?.closest('[data-idx]');
+  
+  if (cell) {
+    dropOn(parseInt(cell.dataset.idx));
+  } else {
+    endDrag();
+  }
+  
+  clearDragOver();
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+}
+function moveGhost(x,y){
+  ghost.style.left=x+'px';ghost.style.top=y+'px';
+}
+function highlightUnder(x,y){
+  clearDragOver();
+  const el=document.elementFromPoint(x,y);
+  el?.closest('[data-idx]')?.classList.add('drag-over');
+}
+// Ensure clearDragOver targets the right class
+function clearDragOver() {
+  const overlays = document.querySelectorAll('.drag-over');
+  overlays.forEach(c => c.classList.remove('drag-over'));
+}
+function endDrag(){
+  ghost.style.display='none';
+  dragSrcIdx=null;dragMode=null;
+  renderBoard();
+}
+
+/* ══════════════════════════════════════
+   MODALS
+══════════════════════════════════════ */
+function openModal(type){
+  const overlay=document.getElementById('modal-overlay');
+  const title=document.getElementById('modal-title');
+  const body=document.getElementById('modal-body');
+  overlay.classList.add('open');
+  if(type==='help'){
+    title.textContent='How to Play';
+    body.innerHTML=[
+      ['Tap 🪴 or 🧊 to spawn ingredients','⚡ costs 1 energy'],
+      ['Drag same items together to merge','They evolve to higher level!'],
+      ['Deliver items to earn Gold','Tap Deliver when it lights up 🟢'],
+      ['Buy Energy refills in the Shop','Keep the kitchen running! 🛒']
+    ].map(([t,s],i)=>`
+      <div class="help-step">
+        <div class="help-num">${i+1}</div>
+        <div class="help-txt"><strong>${t}</strong><br><span style="opacity:.7">${s}</span></div>
+      </div>`).join('');
+  }
+  else if(type==='evo'){
+    const item=selIdx!==null?board[selIdx]:null;
+    if(!item||item.isProducer){closeModal();return;}
+    const tKey=item.tree||treeKeyOf(item.id);
+    const tree=TREES[tKey];
+    title.textContent='Evolution Path';
+    const steps=tree.map((s,i)=>{
+      const cls=s.id===item.id?'current':s.lv<item.lv?'done':'';
+      return `<div class="evo-step ${cls}">${s.e}</div>${i<tree.length-1?'<div class="evo-arrow">▸</div>':''}`;
+    }).join('');
+    body.innerHTML=`
+      <div class="evo-chain">${steps}</div>
+      <div style="text-align:center;margin-top:4px">
+        <div class="evo-label">${item.n} · Lv${item.lv} · ${tKey}</div>
+      </div>`;
+  }
+  else if(type==='shop'){
+    title.textContent='Shop';
+    body.innerHTML=`
+      <div class="shop-hero">
+        <div class="shop-zap">⚡</div>
+        <div class="shop-title">Energy Refill</div>
+        <div class="shop-sub">Restore +10 energy to keep cooking!</div>
+      </div>
+      <button class="btn-buy" onclick="buyEnergy()">🪙 100 Gold — Refill Energy</button>`;
+  }
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function overlayClick(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+function buyEnergy(){
+  if(gold<100){toast('Need 100 Gold! 🪙');return;}
+  gold-=100;energy=Math.min(energy+10,MAX_E);
+  closeModal();render();toast('+10 Energy! ⚡');
+}
+
+/* ══════════════════════════════════════
+   ANIMATIONS & FX
+══════════════════════════════════════ */
+function getCellEl(idx){return document.querySelectorAll('.cell')[idx];}
+
+function animPop(idx){
+  const c=getCellEl(idx);if(!c)return;
+  c.classList.remove('merge-pop');void c.offsetWidth;
+  c.classList.add('merge-pop');
+  c.addEventListener('animationend',()=>c.classList.remove('merge-pop'),{once:true});
+}
+function animWrong(idx){
+  const c=getCellEl(idx);if(!c)return;
+  c.classList.remove('wrong-drop');void c.offsetWidth;
+  c.classList.add('wrong-drop');
+  c.addEventListener('animationend',()=>c.classList.remove('wrong-drop'),{once:true});
+}
+
+function sparkBurst(idx){
+  const c=getCellEl(idx);if(!c)return;
+  const r=c.getBoundingClientRect();
+  spawnSparks(r.left+r.width/2,r.top+r.height/2,10);
+}
+function sparkBurstCenter(){
+  spawnSparks(window.innerWidth/2,window.innerHeight*0.35,18);
+}
+function spawnSparks(cx,cy,count){
+  const cols=['#f0a830','#d4622a','#6b8c3a','#5b9fd4','#e84848','#c8894a'];
+  for(let i=0;i<count;i++){
+    const s=document.createElement('div');
+    s.className='spark';
+    const angle=Math.random()*360;
+    const dist=28+Math.random()*44;
+    const dx=Math.cos(angle*Math.PI/180)*dist;
+    const dy=Math.sin(angle*Math.PI/180)*dist;
+    s.style.cssText=`left:${cx}px;top:${cy}px;background:${cols[i%cols.length]};--to:translate(${dx}px,${dy}px);`;
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),650);
+  }
+}
+
+function floatCoin(idx,amt){
+  const c=getCellEl(idx);if(!c)return;
+  const r=c.getBoundingClientRect();
+  const f=document.createElement('div');
+  f.className='coin-up';f.textContent='+'+amt+'g 🪙';
+  f.style.cssText=`left:${r.left+r.width/2}px;top:${r.top}px;transform:translateX(-50%)`;
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),1000);
+}
+
+/* ── TOAST ── */
+let toastT;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+/* ── GO ── */
+render();
+
+// Function for a light "tick" (picking up)
+function hapticTick() {
+  if (navigator.vibrate) navigator.vibrate(10);
+}
+
+// Function for a stronger "pop" (merging)
+function hapticSuccess() {
+  if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+}
+
+</script>
+</body>
+</html>
