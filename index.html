@@ -243,6 +243,7 @@ html,body{
   position:relative;cursor:pointer;
   font-size:clamp(18px,5vw,24px);
   transition:transform .1s,box-shadow .1s;
+  touch-action: none;
 }
 /* empty — carved slot */
 .cell.empty{
@@ -362,7 +363,6 @@ html,body{
   transform:translate(-50%,-70%);
   filter:drop-shadow(0 4px 8px rgba(90,40,10,.5));
   display:none;
-  will-change:transform;
 }
 
 /* ── MODAL ── */
@@ -786,86 +786,79 @@ function deliverOrder(oid){
 /* ══════════════════════════════════════
    DRAG & DROP  (mouse + touch unified)
 ══════════════════════════════════════ */
-let dragSrcIdx=null;
-let dragMode=null; // 'mouse'|'touch'
-const ghost=document.getElementById('drag-ghost');
+let dragSrcIdx = null;
 
-function startDrag(e,idx,mode){
-  if(board[idx]?.isProducer)return;
+function startDrag(e, idx, mode) {
+  if (board[idx]?.isProducer) return;
+  
+  // Haptic Feedback (from our previous step)
+  if (navigator.vibrate) navigator.vibrate(10);
+
   e.preventDefault();
-  dragSrcIdx=idx; dragMode=mode; selIdx=idx;
-  ghost.textContent=board[idx].e;
-  ghost.style.display='block';
-  moveGhost(mode==='touch'?e.touches[0].clientX:e.clientX,
-            mode==='touch'?e.touches[0].clientY:e.clientY);
+  dragSrcIdx = idx;
+  selIdx = idx;
+
+  const ghost = document.getElementById('drag-ghost');
+  ghost.textContent = board[idx].e;
+  ghost.style.display = 'block';
+
+  const clientX = mode === 'touch' ? e.touches[0].clientX : e.clientX;
+  const clientY = mode === 'touch' ? e.touches[0].clientY : e.clientY;
+  moveGhost(clientX, clientY);
+
   renderBoard();
 
-  if(mode==='mouse'){
-    document.addEventListener('mousemove',onMouseMove);
-    document.addEventListener('mouseup',onMouseUp);
+  if (mode === 'mouse') {
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   } else {
-    document.addEventListener('touchmove',onTouchMove,{passive:false});
-    document.addEventListener('touchend',onTouchEnd);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
   }
 }
 
-function onMouseMove(e){moveGhost(e.clientX,e.clientY);}
-function onTouchMove(e){
-  if (dragSrcIdx === null) return;
-  // Prevent the page from scrolling while dragging
-  e.preventDefault(); 
-  
+function onTouchMove(e) {
+  e.preventDefault(); // Stops the screen from shaking/scrolling
   const touch = e.touches[0];
   moveGhost(touch.clientX, touch.clientY);
-  
-  // Find the element currently under the finger
+
+  // We find the cell under the finger
   const el = document.elementFromPoint(touch.clientX, touch.clientY);
   const cell = el?.closest('.cell');
   
   clearDragOver();
-  if (cell) {
-    cell.classList.add('drag-over');
-  }
-  }
-function onMouseUp(e){
-  const el=document.elementFromPoint(e.clientX,e.clientY);
-  const cell=el?.closest('[data-idx]');
-  if(cell) dropOn(parseInt(cell.dataset.idx));
-  else endDrag();
-  clearDragOver();
-  document.removeEventListener('mousemove',onMouseMove);
-  document.removeEventListener('mouseup',onMouseUp);
+  if (cell) cell.classList.add('drag-over');
 }
-function onTouchEnd(e){
+
+function onTouchEnd(e) {
   const t = e.changedTouches[0];
-  // Determine final drop location
   const el = document.elementFromPoint(t.clientX, t.clientY);
   const cell = el?.closest('[data-idx]');
-  
+
   if (cell) {
     dropOn(parseInt(cell.dataset.idx));
   } else {
     endDrag();
-  }  
+  }
+
   clearDragOver();
   document.removeEventListener('touchmove', onTouchMove);
   document.removeEventListener('touchend', onTouchEnd);
-  }
-function moveGhost(x,y){
-  ghost.style.left=x+'px';ghost.style.top=y+'px';
 }
-function highlightUnder(x,y){
-  clearDragOver();
-  const el=document.elementFromPoint(x,y);
-  el?.closest('[data-idx]')?.classList.add('drag-over');
+
+function moveGhost(x, y) {
+  const ghost = document.getElementById('drag-ghost');
+  ghost.style.left = x + 'px';
+  ghost.style.top = y + 'px';
 }
-function clearDragOver(){
-  const overlays = document.querySelectorAll('.drag-over');
-  overlays.forEach(c => c.classList.remove('drag-over'));
-  }
-function endDrag(){
-  ghost.style.display='none';
-  dragSrcIdx=null;dragMode=null;
+
+function clearDragOver() {
+  document.querySelectorAll('.cell.drag-over').forEach(c => c.classList.remove('drag-over'));
+}
+
+function endDrag() {
+  document.getElementById('drag-ghost').style.display = 'none';
+  dragSrcIdx = null;
   renderBoard();
 }
 
