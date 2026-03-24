@@ -223,6 +223,8 @@ html,body{
     inset 0 1px 0 rgba(255,230,180,.3),
     inset 0 -2px 4px rgba(0,0,0,.2);
   position:relative;
+  touch-action: none; /* Add this */
+  user-select: none;  /* Add this */
 }
 /* plank screw dots */
 #board::before,#board::after{
@@ -257,6 +259,7 @@ html,body{
   border-right:2px solid #d0b070;
   box-shadow:0 3px 7px rgba(90,40,10,.25),inset 0 1px 0 rgba(255,255,255,.9);
   cursor:grab;
+  touch-action: none;
 }
 .cell.filled:active{cursor:grabbing;}
 /* producer — darker wood panel with glow */
@@ -808,10 +811,22 @@ function startDrag(e,idx,mode){
 
 function onMouseMove(e){moveGhost(e.clientX,e.clientY);}
 function onTouchMove(e){
-  e.preventDefault();
-  moveGhost(e.touches[0].clientX,e.touches[0].clientY);
-  highlightUnder(e.touches[0].clientX,e.touches[0].clientY);
-}
+  if (dragSrcIdx === null) return;
+  // Prevent the page from scrolling while dragging
+  e.preventDefault(); 
+  
+  const touch = e.touches[0];
+  moveGhost(touch.clientX, touch.clientY);
+  
+  // Find the element currently under the finger
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const cell = el?.closest('.cell');
+  
+  clearDragOver();
+  if (cell) {
+    cell.classList.add('drag-over');
+  }
+  }
 function onMouseUp(e){
   const el=document.elementFromPoint(e.clientX,e.clientY);
   const cell=el?.closest('[data-idx]');
@@ -822,15 +837,20 @@ function onMouseUp(e){
   document.removeEventListener('mouseup',onMouseUp);
 }
 function onTouchEnd(e){
-  const t=e.changedTouches[0];
-  const el=document.elementFromPoint(t.clientX,t.clientY);
-  const cell=el?.closest('[data-idx]');
-  if(cell) dropOn(parseInt(cell.dataset.idx));
-  else endDrag();
+  const t = e.changedTouches[0];
+  // Determine final drop location
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  const cell = el?.closest('[data-idx]');
+  
+  if (cell) {
+    dropOn(parseInt(cell.dataset.idx));
+  } else {
+    endDrag();
+  }  
   clearDragOver();
-  document.removeEventListener('touchmove',onTouchMove);
-  document.removeEventListener('touchend',onTouchEnd);
-}
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+  }
 function moveGhost(x,y){
   ghost.style.left=x+'px';ghost.style.top=y+'px';
 }
@@ -840,8 +860,9 @@ function highlightUnder(x,y){
   el?.closest('[data-idx]')?.classList.add('drag-over');
 }
 function clearDragOver(){
-  document.querySelectorAll('.cell.drag-over').forEach(c=>c.classList.remove('drag-over'));
-}
+  const overlays = document.querySelectorAll('.drag-over');
+  overlays.forEach(c => c.classList.remove('drag-over'));
+  }
 function endDrag(){
   ghost.style.display='none';
   dragSrcIdx=null;dragMode=null;
