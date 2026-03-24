@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<title>Pet Merge — Cozy Kitchen</title>
+<title>Mercantail - Pet Merge Game</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@500;600;700&display=swap" rel="stylesheet"/>
 <style>
 /* ── RESET & ROOT ── */
@@ -130,7 +130,6 @@ html,body{
   padding-bottom:env(safe-area-inset-bottom, 16px);
 }
 #scroll-body::-webkit-scrollbar{display:none;}
-#scroll-body.drag-locked{overflow:hidden;touch-action:none;}
 
 /* ── ORDERS ── */
 #orders-section{
@@ -224,6 +223,9 @@ html,body{
     inset 0 1px 0 rgba(255,230,180,.3),
     inset 0 -2px 4px rgba(0,0,0,.2);
   position:relative;
+  touch-action: none; /* Add this */
+  user-select: none;  /* Add this */
+
 }
 /* plank screw dots */
 #board::before,#board::after{
@@ -258,6 +260,8 @@ html,body{
   border-right:2px solid #d0b070;
   box-shadow:0 3px 7px rgba(90,40,10,.25),inset 0 1px 0 rgba(255,255,255,.9);
   cursor:grab;
+  touch-action: none; /* Add this */
+
 }
 .cell.filled:active{cursor:grabbing;}
 /* producer — darker wood panel with glow */
@@ -356,11 +360,11 @@ html,body{
 /* ── DRAG GHOST ── */
 #drag-ghost{
   position:fixed;pointer-events:none;z-index:500;
-  font-size:36px;
-  transform:translate(-50%,-70%);
+  font-size:40px;
+  transform:translate(-50%, -100%);   /* centered horizontally, fully above the tap point */
   filter:drop-shadow(0 4px 8px rgba(90,40,10,.5));
   display:none;
-  will-change:transform;
+  will-change:left,top;
 }
 
 /* ── MODAL ── */
@@ -497,7 +501,7 @@ html,body{
 
   <!-- HEADER -->
   <header id="header">
-    <div class="logo">🐾 Cozy<span>Kitchen</span></div>
+    <div class="logo">🐾 Mercantail</div>
     <div class="hud-row">
       <div class="hud-chip">
         <div class="hud-icon zap">⚡</div>
@@ -658,20 +662,21 @@ function renderBoard(){
       }
     }
 
-    // click: producer OR select
-    div.addEventListener('click',()=>{
+    // click: producer OR select (tap, not drag)
+    div.addEventListener('click', e=>{
+      if(dragStarted) return;          // ignore click that follows a drag
       if(cell?.isProducer){produceItem(idx);return;}
       selIdx=(selIdx===idx)?null:idx;
       renderBoard();renderInspector();
     });
 
-    // DRAG SOURCE — touch-action:none prevents browser scroll stealing
+    // DRAG SOURCE events
     if(cell&&!cell.isProducer){
-      div.style.touchAction='none';
-      div.addEventListener('mousedown', e=>startDrag(e,idx));
-      div.addEventListener('touchstart', e=>startDrag(e,idx),{passive:false});
+      div.addEventListener('mousedown', e=>onMouseDown(e,idx));
+      // touchstart on cell — start long-press timer; passive:true so scroll still works until drag begins
+      div.addEventListener('touchstart', e=>onTouchStart(e,idx), {passive:true});
     }
-    // DROP TARGET
+    // DROP TARGET (HTML5 drag API fallback — not needed for touch but keeps desktop clean)
     div.addEventListener('dragover', e=>{e.preventDefault();div.classList.add('drag-over');});
     div.addEventListener('dragleave', ()=>div.classList.remove('drag-over'));
     div.addEventListener('drop', e=>{e.preventDefault();div.classList.remove('drag-over');dropOn(idx);});
@@ -727,6 +732,7 @@ function doMerge(srcIdx,tgtIdx){
   const tree=TREES[tKey];
   const ci=tree.findIndex(x=>x.id===src.id);
   if(ci<tree.length-1){
+    hapticSuccess();
     board[tgtIdx]={...tree[ci+1],tree:tKey,iid:uid()};
     board[srcIdx]=null;
     selIdx=tgtIdx;
@@ -756,10 +762,7 @@ function dropOn(tgtIdx){
   } else {
     animWrong(tgtIdx);
   }
-  // unlock scroll & clear ghost state (don't call endDrag — render already called above)
-  ghost.style.display='none';
-  dragSrcIdx=null;
-  scrollBody.classList.remove('drag-locked');
+  endDrag();
 }
 
 function sellItem(){
@@ -779,6 +782,7 @@ function deliverOrder(oid){
   renderOrders();
   setTimeout(()=>{
     board[itemIdx]=null;gold+=order.reward;
+    hapticSuccess();
     orders=orders.map(o=>o.id===oid?rndOrder():o);
     render();sparkBurstCenter();
     toast('🎉 Delivered! +'+order.reward+'g');
@@ -786,138 +790,126 @@ function deliverOrder(oid){
 }
 
 /* ══════════════════════════════════════
-   DRAG & DROP — mobile-safe implementation
-   Key fixes:
-   1. Ghost hidden BEFORE elementFromPoint on touchend
-   2. Fallback: hit-test cell rects directly (bypasses ghost overlap)
-   3. Scroll container locked during drag so touchmove isn't eaten
-   4. touch-action:none on board cells to prevent scroll stealing
+   DRAG & DROP  (mouse + touch unified)
 ══════════════════════════════════════ */
 let dragSrcIdx=null;
+let dragMode=null; // 'mouse'|'touch'
+let dragStarted=false;        // true once ghost is shown
+let touchLongPressTimer=null; // for long-press detection
+let touchStartX=0,touchStartY=0;
+const LONG_PRESS_MS=180;      // ms before touch becomes a drag
+const DRAG_MOVE_THRESH=6;     // px — if finger moves this far before timer fires, treat as scroll
 const ghost=document.getElementById('drag-ghost');
-const scrollBody=document.getElementById('scroll-body');
 
-/* Build a cached rect map of all cells — used as fallback hit-test */
-let cellRects=[];
-function cacheCellRects(){
-  cellRects=[];
-  document.querySelectorAll('.cell').forEach((c,i)=>{
-    const r=c.getBoundingClientRect();
-    cellRects.push({idx:i,left:r.left,top:r.top,right:r.right,bottom:r.bottom});
-  });
-}
-
-/* Find which cell index is under a point, using cached rects */
-function cellIdxAt(x,y){
-  for(const r of cellRects){
-    if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom) return r.idx;
-  }
-  return -1;
-}
-
-function startDrag(e,idx){
+/* ── called when we're sure we want to drag ── */
+function beginDrag(idx, clientX, clientY, mode){
   if(board[idx]?.isProducer) return;
-  e.preventDefault();
-  dragSrcIdx=idx; selIdx=idx;
-
+  hapticTick();
+  dragSrcIdx=idx; dragMode=mode; dragStarted=true; selIdx=idx;
   ghost.textContent=board[idx].e;
   ghost.style.display='block';
-
-  const cx=e.touches?e.touches[0].clientX:e.clientX;
-  const cy=e.touches?e.touches[0].clientY:e.clientY;
-  moveGhost(cx,cy);
-
-  /* Lock scroll so touchmove reaches our handler */
-  scrollBody.classList.add('drag-locked');
-
-  /* Cache cell positions AFTER board has rendered this frame */
-  requestAnimationFrame(()=>{
-    renderBoard(); // mark src as dragging
-    cacheCellRects();
-  });
-
-  if(e.touches){
-    document.addEventListener('touchmove',onTouchMove,{passive:false});
-    document.addEventListener('touchend',onTouchEnd,{passive:false});
-    document.addEventListener('touchcancel',onTouchCancel);
+  moveGhost(clientX, clientY);
+  renderBoard();
+  if(mode==='touch'){
+    document.addEventListener('touchmove', onTouchMove, {passive:false});
+    document.addEventListener('touchend',  onTouchEnd);
+    document.addEventListener('touchcancel', cancelTouchDrag);
   } else {
-    document.addEventListener('mousemove',onMouseMove);
-    document.addEventListener('mouseup',onMouseUp);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup',   onMouseUp);
   }
 }
 
-function onMouseMove(e){
-  moveGhost(e.clientX,e.clientY);
-  highlightAt(e.clientX,e.clientY);
+/* ── MOUSE ── */
+function onMouseDown(e, idx){
+  if(board[idx]?.isProducer) return;
+  e.preventDefault();
+  beginDrag(idx, e.clientX, e.clientY, 'mouse');
 }
-function onTouchMove(e){
-  e.preventDefault(); // critical — stops page scroll during drag
-  const t=e.touches[0];
-  moveGhost(t.clientX,t.clientY);
-  highlightAt(t.clientX,t.clientY);
+function onMouseMove(e){ moveGhost(e.clientX, e.clientY); }
+function onMouseUp(e){
+  const el=document.elementFromPoint(e.clientX, e.clientY);
+  const cell=el?.closest('[data-idx]');
+  if(cell) dropOn(parseInt(cell.dataset.idx));
+  else endDrag();
+  clearDragOver();
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup',   onMouseUp);
 }
 
-function onMouseUp(e){
+/* ── TOUCH ── */
+function onTouchStart(e, idx){
+  if(board[idx]?.isProducer) return;   // producers use click, not drag
+  const t=e.touches[0];
+  touchStartX=t.clientX; touchStartY=t.clientY;
+
+  // Start a long-press timer; if it fires we begin dragging
+  touchLongPressTimer=setTimeout(()=>{
+    touchLongPressTimer=null;
+    e.preventDefault();               // suppress the eventual click
+    beginDrag(idx, touchStartX, touchStartY, 'touch');
+  }, LONG_PRESS_MS);
+}
+
+function onTouchMove(e){
+  if(!dragStarted){
+    // timer hasn't fired yet — check if finger moved too far (scroll intent)
+    const t=e.touches[0];
+    const dx=t.clientX-touchStartX, dy=t.clientY-touchStartY;
+    if(Math.sqrt(dx*dx+dy*dy)>DRAG_MOVE_THRESH){
+      clearTimeout(touchLongPressTimer);
+      touchLongPressTimer=null;
+    }
+    return;
+  }
+  // We're dragging
+  e.preventDefault();
+  const touch=e.touches[0];
+  moveGhost(touch.clientX, touch.clientY);
   clearDragOver();
-  document.removeEventListener('mousemove',onMouseMove);
-  document.removeEventListener('mouseup',onMouseUp);
-  const el=document.elementFromPoint(e.clientX,e.clientY);
-  const cell=el?.closest('[data-idx]');
-  const tgtIdx=cell?parseInt(cell.dataset.idx):cellIdxAt(e.clientX,e.clientY);
-  finaliseDrop(tgtIdx);
+  // Hide ghost so elementFromPoint finds the cell beneath the finger
+  ghost.style.display='none';
+  const el=document.elementFromPoint(touch.clientX, touch.clientY);
+  ghost.style.display='block';
+  el?.closest('.cell')?.classList.add('drag-over');
 }
 
 function onTouchEnd(e){
-  e.preventDefault();
-  clearDragOver();
-  document.removeEventListener('touchmove',onTouchMove);
-  document.removeEventListener('touchend',onTouchEnd);
-  document.removeEventListener('touchcancel',onTouchCancel);
-
+  clearTimeout(touchLongPressTimer); touchLongPressTimer=null;
+  if(!dragStarted){ endDrag(); return; }
   const t=e.changedTouches[0];
-
-  /* CRITICAL: hide ghost FIRST so it doesn't block elementFromPoint */
+  // Hide ghost briefly so elementFromPoint sees the cell under finger
   ghost.style.display='none';
-
-  /* Try DOM hit-test first, fall back to cached rect hit-test */
-  const el=document.elementFromPoint(t.clientX,t.clientY);
-  const domCell=el?.closest('[data-idx]');
-  const tgtIdx=domCell ? parseInt(domCell.dataset.idx) : cellIdxAt(t.clientX,t.clientY);
-
-  finaliseDrop(tgtIdx);
-}
-
-function onTouchCancel(){
-  document.removeEventListener('touchmove',onTouchMove);
-  document.removeEventListener('touchend',onTouchEnd);
-  document.removeEventListener('touchcancel',onTouchCancel);
-  endDrag();
-}
-
-function finaliseDrop(tgtIdx){
-  if(tgtIdx>=0 && tgtIdx!==dragSrcIdx) dropOn(tgtIdx);
+  const el=document.elementFromPoint(t.clientX, t.clientY);
+  ghost.style.display='block';
+  const cell=el?.closest('[data-idx]');
+  if(cell) dropOn(parseInt(cell.dataset.idx));
   else endDrag();
+  clearDragOver();
+  document.removeEventListener('touchmove',   onTouchMove);
+  document.removeEventListener('touchend',    onTouchEnd);
+  document.removeEventListener('touchcancel', cancelTouchDrag);
+}
+
+function cancelTouchDrag(){
+  clearTimeout(touchLongPressTimer); touchLongPressTimer=null;
+  endDrag();
+  document.removeEventListener('touchmove',   onTouchMove);
+  document.removeEventListener('touchend',    onTouchEnd);
+  document.removeEventListener('touchcancel', cancelTouchDrag);
 }
 
 function moveGhost(x,y){
+  // Offset upward so the item shows above the finger
   ghost.style.left=x+'px';
-  ghost.style.top=y+'px';
-}
-function highlightAt(x,y){
-  clearDragOver();
-  const idx=cellIdxAt(x,y);
-  if(idx>=0){
-    const cells=document.querySelectorAll('.cell');
-    if(cells[idx]) cells[idx].classList.add('drag-over');
-  }
+  ghost.style.top=(y-30)+'px';
 }
 function clearDragOver(){
-  document.querySelectorAll('.cell.drag-over').forEach(c=>c.classList.remove('drag-over'));
+  document.querySelectorAll('.drag-over').forEach(c=>c.classList.remove('drag-over'));
 }
 function endDrag(){
   ghost.style.display='none';
-  dragSrcIdx=null;
-  scrollBody.classList.remove('drag-locked');
+  dragSrcIdx=null; dragMode=null; dragStarted=false;
   renderBoard();
 }
 
@@ -1039,6 +1031,17 @@ function toast(msg){
 
 /* ── GO ── */
 render();
+
+// Function for a light "tick" (picking up)
+function hapticTick() {
+  if (navigator.vibrate) navigator.vibrate(10);
+}
+
+// Function for a stronger "pop" (merging)
+function hapticSuccess() {
+  if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+}
+
 </script>
 </body>
 </html>
