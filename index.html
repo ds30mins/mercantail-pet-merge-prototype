@@ -50,10 +50,7 @@ html,body{
   height:100%;
   background:var(--bg2);
   font-family:var(--font-b);
-  overflow:hidden;
-  touch-action:none; /* tell browser: we handle all touches ourselves */
-  overscroll-behavior:none;
-  position:fixed;width:100%; /* prevent iOS bounce scroll */
+  overflow:hidden; /* outer body locked */
 }
 
 /* ── APP SHELL ── */
@@ -65,8 +62,7 @@ html,body{
   display:flex;
   flex-direction:column;
   position:relative;
-  overflow:hidden;
-  touch-action:none;
+  overflow:hidden; /* fixed header/footer outside scroll */
 }
 
 /* ── HEADER (fixed, outside scroll) ── */
@@ -449,27 +445,6 @@ html,body{
   transition:transform .08s;text-transform:uppercase;letter-spacing:.05em;
 }
 .btn-buy:active{transform:scale(0.96) translateY(2px);border-bottom-width:1px;}
-/* energy warning banner inside shop */
-.shop-energy-warn{
-  display:flex;align-items:center;gap:8px;
-  background:#fff0e8;border:1.5px solid #f0b090;
-  border-radius:var(--r-md);padding:9px 12px;margin-bottom:12px;
-  font-family:var(--font-h);font-size:12px;font-weight:800;color:var(--terra-d);
-}
-/* gold chip shown in modal header */
-.modal-gold-chip{
-  display:flex;align-items:center;gap:4px;
-  background:linear-gradient(135deg,#fff8d8,#ffe8a0);
-  border:1.5px solid var(--honey);border-radius:20px;
-  padding:3px 9px 3px 4px;
-  font-family:var(--font-h);font-size:12px;font-weight:900;color:var(--honey-d);
-  box-shadow:0 1px 4px rgba(160,120,0,.15);
-}
-.modal-gold-icon{
-  width:18px;height:18px;border-radius:50%;
-  background:linear-gradient(135deg,var(--honey),var(--honey-d));
-  display:flex;align-items:center;justify-content:center;font-size:10px;
-}
 
 /* help */
 .help-step{
@@ -578,13 +553,7 @@ html,body{
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title" id="modal-title">Info</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="modal-gold-chip" id="modal-gold-chip" style="display:none;">
-          <div class="modal-gold-icon">🪙</div>
-          <span id="modal-gold-val">0</span>
-        </div>
-        <button class="modal-close" onclick="closeModal()">✕</button>
-      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
   </div>
@@ -695,7 +664,7 @@ function renderBoard(){
 
     // click: producer OR select (tap, not drag)
     div.addEventListener('click', e=>{
-      if(dragStarted) return;
+      if(dragStarted) return;          // ignore click that follows a drag
       if(cell?.isProducer){produceItem(idx);return;}
       selIdx=(selIdx===idx)?null:idx;
       renderBoard();renderInspector();
@@ -704,10 +673,10 @@ function renderBoard(){
     // DRAG SOURCE events
     if(cell&&!cell.isProducer){
       div.addEventListener('mousedown', e=>onMouseDown(e,idx));
-      // passive:false required so we can call preventDefault inside onTouchStart
-      div.addEventListener('touchstart', e=>onTouchStart(e,idx), {passive:false});
+      // touchstart on cell — start long-press timer; passive:true so scroll still works until drag begins
+      div.addEventListener('touchstart', e=>onTouchStart(e,idx), {passive:true});
     }
-    // DROP TARGET (HTML5 drag API — desktop fallback)
+    // DROP TARGET (HTML5 drag API fallback — not needed for touch but keeps desktop clean)
     div.addEventListener('dragover', e=>{e.preventDefault();div.classList.add('drag-over');});
     div.addEventListener('dragleave', ()=>div.classList.remove('drag-over'));
     div.addEventListener('drop', e=>{e.preventDefault();div.classList.remove('drag-over');dropOn(idx);});
@@ -747,7 +716,7 @@ function renderInspector(){
    GAME LOGIC
 ══════════════════════════════════════ */
 function produceItem(idx){
-  if(energy<=0){openModal('shop',{lowEnergy:true});return;}
+  if(energy<=0){toast('⚡ Out of Energy!');return;}
   const empty=board.findIndex(c=>c===null);
   if(empty===-1){toast('🪵 Board is full!');return;}
   const p=board[idx];
@@ -822,24 +791,43 @@ function deliverOrder(oid){
 
 /* ══════════════════════════════════════
    DRAG & DROP  (mouse + touch unified)
-   Touch-action:none on body means the browser
-   won't fight us for scroll — drag starts immediately.
 ══════════════════════════════════════ */
 let dragSrcIdx=null;
-let dragStarted=false;
+let dragMode=null; // 'mouse'|'touch'
+let dragStarted=false;        // true once ghost is shown
+let touchLongPressTimer=null; // for long-press detection
+let touchStartX=0,touchStartY=0;
+const LONG_PRESS_MS=180;      // ms before touch becomes a drag
+const DRAG_MOVE_THRESH=6;     // px — if finger moves this far before timer fires, treat as scroll
 const ghost=document.getElementById('drag-ghost');
 
+/* ── called when we're sure we want to drag ── */
+function beginDrag(idx, clientX, clientY, mode){
+  if(board[idx]?.isProducer) return;
+  hapticTick();
+  dragSrcIdx=idx; dragMode=mode; dragStarted=true; selIdx=idx;
+  ghost.textContent=board[idx].e;
+  ghost.style.display='block';
+  moveGhost(clientX, clientY);
+  renderBoard();
+  if(mode==='touch'){
+    document.addEventListener('touchmove', onTouchMove, {passive:false});
+    document.addEventListener('touchend',  onTouchEnd);
+    document.addEventListener('touchcancel', cancelTouchDrag);
+  } else {
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup',   onMouseUp);
+  }
+}
+
 /* ── MOUSE ── */
-function onMouseDown(e,idx){
+function onMouseDown(e, idx){
   if(board[idx]?.isProducer) return;
   e.preventDefault();
-  beginDrag(idx, e.clientX, e.clientY);
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup',   onMouseUp);
+  beginDrag(idx, e.clientX, e.clientY, 'mouse');
 }
 function onMouseMove(e){ moveGhost(e.clientX, e.clientY); }
 function onMouseUp(e){
-  ghost.style.display='none';
   const el=document.elementFromPoint(e.clientX, e.clientY);
   const cell=el?.closest('[data-idx]');
   if(cell) dropOn(parseInt(cell.dataset.idx));
@@ -850,28 +838,47 @@ function onMouseUp(e){
 }
 
 /* ── TOUCH ── */
-function onTouchStart(e,idx){
-  if(board[idx]?.isProducer) return;
-  e.preventDefault(); // safe because touch-action:none is set globally
+function onTouchStart(e, idx){
+  if(board[idx]?.isProducer) return;   // producers use click, not drag
   const t=e.touches[0];
-  beginDrag(idx, t.clientX, t.clientY);
-  document.addEventListener('touchmove',   onTouchMove, {passive:false});
-  document.addEventListener('touchend',    onTouchEnd);
-  document.addEventListener('touchcancel', endDrag);
+  touchStartX=t.clientX; touchStartY=t.clientY;
+
+  // Start a long-press timer; if it fires we begin dragging
+  touchLongPressTimer=setTimeout(()=>{
+    touchLongPressTimer=null;
+    e.preventDefault();               // suppress the eventual click
+    beginDrag(idx, touchStartX, touchStartY, 'touch');
+  }, LONG_PRESS_MS);
 }
+
 function onTouchMove(e){
+  if(!dragStarted){
+    // timer hasn't fired yet — check if finger moved too far (scroll intent)
+    const t=e.touches[0];
+    const dx=t.clientX-touchStartX, dy=t.clientY-touchStartY;
+    if(Math.sqrt(dx*dx+dy*dy)>DRAG_MOVE_THRESH){
+      clearTimeout(touchLongPressTimer);
+      touchLongPressTimer=null;
+    }
+    return;
+  }
+  // We're dragging
   e.preventDefault();
-  const t=e.touches[0];
-  moveGhost(t.clientX, t.clientY);
-  // Temporarily hide ghost to hit-test the cell under the finger
-  ghost.style.display='none';
-  const el=document.elementFromPoint(t.clientX, t.clientY);
-  ghost.style.display='block';
+  const touch=e.touches[0];
+  moveGhost(touch.clientX, touch.clientY);
   clearDragOver();
+  // Hide ghost so elementFromPoint finds the cell beneath the finger
+  ghost.style.display='none';
+  const el=document.elementFromPoint(touch.clientX, touch.clientY);
+  ghost.style.display='block';
   el?.closest('.cell')?.classList.add('drag-over');
 }
+
 function onTouchEnd(e){
+  clearTimeout(touchLongPressTimer); touchLongPressTimer=null;
+  if(!dragStarted){ endDrag(); return; }
   const t=e.changedTouches[0];
+  // Hide ghost briefly so elementFromPoint sees the cell under finger
   ghost.style.display='none';
   const el=document.elementFromPoint(t.clientX, t.clientY);
   ghost.style.display='block';
@@ -881,50 +888,39 @@ function onTouchEnd(e){
   clearDragOver();
   document.removeEventListener('touchmove',   onTouchMove);
   document.removeEventListener('touchend',    onTouchEnd);
-  document.removeEventListener('touchcancel', endDrag);
+  document.removeEventListener('touchcancel', cancelTouchDrag);
 }
 
-/* ── SHARED ── */
-function beginDrag(idx, clientX, clientY){
-  hapticTick();
-  dragSrcIdx=idx; dragStarted=true; selIdx=idx;
-  ghost.textContent=board[idx].e;
-  ghost.style.display='block';
-  moveGhost(clientX, clientY);
-  renderBoard();
+function cancelTouchDrag(){
+  clearTimeout(touchLongPressTimer); touchLongPressTimer=null;
+  endDrag();
+  document.removeEventListener('touchmove',   onTouchMove);
+  document.removeEventListener('touchend',    onTouchEnd);
+  document.removeEventListener('touchcancel', cancelTouchDrag);
 }
+
 function moveGhost(x,y){
+  // Offset upward so the item shows above the finger
   ghost.style.left=x+'px';
-  ghost.style.top=(y-40)+'px'; // float above finger
+  ghost.style.top=(y-30)+'px';
 }
 function clearDragOver(){
   document.querySelectorAll('.drag-over').forEach(c=>c.classList.remove('drag-over'));
 }
 function endDrag(){
   ghost.style.display='none';
-  dragSrcIdx=null; dragStarted=false;
+  dragSrcIdx=null; dragMode=null; dragStarted=false;
   renderBoard();
 }
 
 /* ══════════════════════════════════════
    MODALS
 ══════════════════════════════════════ */
-function openModal(type, opts={}){
+function openModal(type){
   const overlay=document.getElementById('modal-overlay');
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
-  const goldChip=document.getElementById('modal-gold-chip');
-  const goldVal=document.getElementById('modal-gold-val');
   overlay.classList.add('open');
-
-  // Show gold chip only for shop
-  if(type==='shop'){
-    goldChip.style.display='flex';
-    goldVal.textContent=gold+'g';
-  } else {
-    goldChip.style.display='none';
-  }
-
   if(type==='help'){
     title.textContent='How to Play';
     body.innerHTML=[
@@ -956,11 +952,7 @@ function openModal(type, opts={}){
   }
   else if(type==='shop'){
     title.textContent='Shop';
-    const warnHtml = opts.lowEnergy
-      ? `<div class="shop-energy-warn">⚡ Out of Energy! Buy a refill to keep going.</div>`
-      : '';
     body.innerHTML=`
-      ${warnHtml}
       <div class="shop-hero">
         <div class="shop-zap">⚡</div>
         <div class="shop-title">Energy Refill</div>
@@ -974,9 +966,6 @@ function overlayClick(e){if(e.target===document.getElementById('modal-overlay'))
 function buyEnergy(){
   if(gold<100){toast('Need 100 Gold! 🪙');return;}
   gold-=100;energy=Math.min(energy+10,MAX_E);
-  // Refresh gold chip in modal header live
-  const goldVal=document.getElementById('modal-gold-val');
-  if(goldVal) goldVal.textContent=gold+'g';
   closeModal();render();toast('+10 Energy! ⚡');
 }
 
