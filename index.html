@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<title>Mercantail - Pet Merge Game</title>
+<title>Mercantail</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@500;600;700&display=swap" rel="stylesheet"/>
 <style>
 /* ── RESET & ROOT ── */
@@ -131,6 +131,15 @@ html,body{
 }
 #scroll-body::-webkit-scrollbar{display:none;}
 
+/* ── TAP HINT ── */
+.tap-hint{
+  width:100%;max-width:360px;
+  text-align:center;
+  padding:4px 0;
+  font-family:var(--font-h);font-size:10px;font-weight:800;
+  color:var(--ink3);letter-spacing:.04em;
+}
+
 /* ── ORDERS ── */
 #orders-section{
   padding:12px 12px 8px;
@@ -197,8 +206,8 @@ html,body{
 
 /* ── BOARD WRAPPER ── */
 #board-wrap{
-  padding:8px 12px 10px;
-  display:flex;justify-content:center;
+  padding:4px 12px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
 }
 
 /* ── BOARD — Woodoku warm wood ── */
@@ -223,9 +232,6 @@ html,body{
     inset 0 1px 0 rgba(255,230,180,.3),
     inset 0 -2px 4px rgba(0,0,0,.2);
   position:relative;
-  touch-action: none; /* Add this */
-  user-select: none;  /* Add this */
-
 }
 /* plank screw dots */
 #board::before,#board::after{
@@ -260,8 +266,6 @@ html,body{
   border-right:2px solid #d0b070;
   box-shadow:0 3px 7px rgba(90,40,10,.25),inset 0 1px 0 rgba(255,255,255,.9);
   cursor:grab;
-  touch-action: none; /* Add this */
-
 }
 .cell.filled:active{cursor:grabbing;}
 /* producer — darker wood panel with glow */
@@ -282,11 +286,8 @@ html,body{
 }
 /* drag feedback */
 .cell.dragging{opacity:0.15;}
-.cell.drag-over{
-  outline:3px dashed var(--olive-l);
-  outline-offset:1px;
-  background:rgba(107,140,58,.15) !important;
-}
+
+
 /* animations */
 .cell.merge-pop{animation:merge-pop .35s ease;}
 @keyframes merge-pop{
@@ -357,15 +358,8 @@ html,body{
 .btn-evo{background:#e8f0ff;border:1.5px solid #b0c8f0;color:var(--blue-soft);}
 .btn-sell{background:#fff0f0;border:1.5px solid #f0b0b0;color:var(--red-soft);}
 
-/* ── DRAG GHOST ── */
-#drag-ghost{
-  position:fixed;pointer-events:none;z-index:500;
-  font-size:40px;
-  transform:translate(-50%, -100%);   /* centered horizontally, fully above the tap point */
-  filter:drop-shadow(0 4px 8px rgba(90,40,10,.5));
-  display:none;
-  will-change:left,top;
-}
+
+
 
 /* ── MODAL ── */
 #modal-overlay{
@@ -426,6 +420,21 @@ html,body{
 }
 
 /* shop */
+.energy-alert{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  background:linear-gradient(135deg,#fff3d8,#ffe4a0);
+  border:2px solid var(--honey);border-radius:var(--r-md);
+  padding:8px 14px;margin-bottom:10px;
+  font-family:var(--font-h);font-size:12px;font-weight:900;
+  color:var(--terra);letter-spacing:.02em;
+}
+.shop-gold-bal{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--bg2);border:1.5px solid #d8c090;
+  border-radius:var(--r-md);padding:8px 14px;margin-bottom:12px;
+  font-family:var(--font-h);font-size:13px;font-weight:800;color:var(--ink2);
+}
+.shop-gold-bal span{font-size:18px;font-weight:900;color:var(--honey-d);}
 .shop-hero{
   background:linear-gradient(135deg,#fff8d8,#ffe8a0);
   border:2px solid var(--honey);border-radius:var(--r-lg);
@@ -501,7 +510,7 @@ html,body{
 
   <!-- HEADER -->
   <header id="header">
-    <div class="logo">🐾 Mercantail</div>
+    <div class="logo">🐾 Mercan<span>tail</span></div>
     <div class="hud-row">
       <div class="hud-chip">
         <div class="hud-icon zap">⚡</div>
@@ -529,6 +538,7 @@ html,body{
 
     <!-- BOARD -->
     <div id="board-wrap">
+      <div class="tap-hint">👆 Tap an item to select · Tap another to merge or move</div>
       <div id="board"></div>
     </div>
 
@@ -545,8 +555,7 @@ html,body{
   </div><!-- /scroll-body -->
 </div><!-- /app -->
 
-<!-- DRAG GHOST -->
-<div id="drag-ghost"></div>
+
 
 <!-- MODAL -->
 <div id="modal-overlay" onclick="overlayClick(event)">
@@ -649,37 +658,37 @@ function renderBoard(){
     if(cell){
       const span=document.createElement('span');
       span.textContent=cell.e;
-      span.style.pointerEvents='none';
+      span.style.cssText='pointer-events:none;user-select:none;-webkit-user-select:none;';
       div.appendChild(span);
       if(cell.isProducer){
         const badge=document.createElement('div');
         badge.className='producer-badge';badge.textContent='⚡';
+        badge.style.pointerEvents='none';
         div.appendChild(badge);
       } else {
         const lv=document.createElement('div');
         lv.className='cell-level';lv.textContent='Lv'+cell.lv;
+        lv.style.pointerEvents='none';
         div.appendChild(lv);
       }
     }
 
-    // click: producer OR select (tap, not drag)
-    div.addEventListener('click', e=>{
-      if(dragStarted) return;          // ignore click that follows a drag
-      if(cell?.isProducer){produceItem(idx);return;}
-      selIdx=(selIdx===idx)?null:idx;
-      renderBoard();renderInspector();
+    // Unified tap handler — fires on touchend (mobile) and click (desktop)
+    // Using touchend prevents the OS text-selection / emoji picker on long-press
+    let touchMoved=false;
+    div.addEventListener('touchstart',()=>{touchMoved=false;},{passive:true});
+    div.addEventListener('touchmove',()=>{touchMoved=true;},{passive:true});
+    div.addEventListener('touchend',(e)=>{
+      if(touchMoved) return; // was a scroll, ignore
+      e.preventDefault(); // stops ghost click that follows touchend
+      handleTap(idx);
     });
-
-    // DRAG SOURCE events
-    if(cell&&!cell.isProducer){
-      div.addEventListener('mousedown', e=>onMouseDown(e,idx));
-      // touchstart on cell — start long-press timer; passive:true so scroll still works until drag begins
-      div.addEventListener('touchstart', e=>onTouchStart(e,idx), {passive:true});
-    }
-    // DROP TARGET (HTML5 drag API fallback — not needed for touch but keeps desktop clean)
-    div.addEventListener('dragover', e=>{e.preventDefault();div.classList.add('drag-over');});
-    div.addEventListener('dragleave', ()=>div.classList.remove('drag-over'));
-    div.addEventListener('drop', e=>{e.preventDefault();div.classList.remove('drag-over');dropOn(idx);});
+    // Desktop click (no touch involved)
+    div.addEventListener('click',(e)=>{
+      // If this device fired a touchend already, the click is a ghost — skip it
+      if(e.sourceCapabilities&&!e.sourceCapabilities.firesTouchEvents) handleTap(idx);
+      else if(!('ontouchstart' in window)) handleTap(idx);
+    });
 
     boardEl.appendChild(div);
   });
@@ -707,7 +716,7 @@ function renderInspector(){
   } else {
     icon.textContent='📦';icon.className='insp-icon';
     name.textContent='Tap a producer to start';
-    sub.textContent='Drag items onto each other to merge';
+    sub.textContent='Tap to select · Tap same item to merge';
     acts.innerHTML='';
   }
 }
@@ -715,8 +724,48 @@ function renderInspector(){
 /* ══════════════════════════════════════
    GAME LOGIC
 ══════════════════════════════════════ */
+function handleTap(idx){
+  const cell=board[idx];
+
+  // Tap a producer → produce
+  if(cell?.isProducer){ produceItem(idx); return; }
+
+  // Nothing selected yet → select this cell (or deselect if tapping same)
+  if(selIdx===null){
+    selIdx = cell ? idx : null;
+    renderBoard(); renderInspector(); return;
+  }
+
+  // Tapping the already-selected cell → deselect
+  if(selIdx===idx){
+    selIdx=null; renderBoard(); renderInspector(); return;
+  }
+
+  const src=board[selIdx];
+
+  // Tapping an empty cell with something selected → move
+  if(!cell && src && !src.isProducer){
+    doMove(selIdx, idx); return;
+  }
+
+  // Tapping a filled cell with something selected → try merge, else swap selection
+  if(cell && !cell.isProducer && src && !src.isProducer){
+    if(src.id===cell.id){
+      doMerge(selIdx, idx);
+    } else {
+      // Different item — shift selection to the new cell
+      selIdx=idx; renderBoard(); renderInspector();
+    }
+    return;
+  }
+
+  // Fallback: just select new cell
+  selIdx = cell ? idx : null;
+  renderBoard(); renderInspector();
+}
+
 function produceItem(idx){
-  if(energy<=0){toast('⚡ Out of Energy!');return;}
+  if(energy<=0){ openModal('shop', true); return; }
   const empty=board.findIndex(c=>c===null);
   if(empty===-1){toast('🪵 Board is full!');return;}
   const p=board[idx];
@@ -732,7 +781,6 @@ function doMerge(srcIdx,tgtIdx){
   const tree=TREES[tKey];
   const ci=tree.findIndex(x=>x.id===src.id);
   if(ci<tree.length-1){
-    hapticSuccess();
     board[tgtIdx]={...tree[ci+1],tree:tKey,iid:uid()};
     board[srcIdx]=null;
     selIdx=tgtIdx;
@@ -742,27 +790,13 @@ function doMerge(srcIdx,tgtIdx){
     toast('✨ Merged to '+tree[ci+1].n+'!');
     return true;
   }
+  toast('Already at max level!'); selIdx=null; render();
   return false;
 }
 
 function doMove(srcIdx,tgtIdx){
   board[tgtIdx]=board[srcIdx];board[srcIdx]=null;
   selIdx=tgtIdx;render();
-}
-
-function dropOn(tgtIdx){
-  if(dragSrcIdx===null||dragSrcIdx===tgtIdx){endDrag();return;}
-  const src=board[dragSrcIdx];
-  const tgt=board[tgtIdx];
-  if(!src||src.isProducer){endDrag();return;}
-  if(tgt&&!tgt.isProducer&&src.id===tgt.id){
-    doMerge(dragSrcIdx,tgtIdx);
-  } else if(!tgt){
-    doMove(dragSrcIdx,tgtIdx);
-  } else {
-    animWrong(tgtIdx);
-  }
-  endDrag();
 }
 
 function sellItem(){
@@ -782,141 +816,18 @@ function deliverOrder(oid){
   renderOrders();
   setTimeout(()=>{
     board[itemIdx]=null;gold+=order.reward;
-    hapticSuccess();
     orders=orders.map(o=>o.id===oid?rndOrder():o);
     render();sparkBurstCenter();
     toast('🎉 Delivered! +'+order.reward+'g');
   },480);
 }
 
-/* ══════════════════════════════════════
-   DRAG & DROP  (mouse + touch unified)
-══════════════════════════════════════ */
-let dragSrcIdx=null;
-let dragMode=null; // 'mouse'|'touch'
-let dragStarted=false;        // true once ghost is shown
-let touchLongPressTimer=null; // for long-press detection
-let touchStartX=0,touchStartY=0;
-const LONG_PRESS_MS=180;      // ms before touch becomes a drag
-const DRAG_MOVE_THRESH=6;     // px — if finger moves this far before timer fires, treat as scroll
-const ghost=document.getElementById('drag-ghost');
-
-/* ── called when we're sure we want to drag ── */
-function beginDrag(idx, clientX, clientY, mode){
-  if(board[idx]?.isProducer) return;
-  hapticTick();
-  dragSrcIdx=idx; dragMode=mode; dragStarted=true; selIdx=idx;
-  ghost.textContent=board[idx].e;
-  ghost.style.display='block';
-  moveGhost(clientX, clientY);
-  renderBoard();
-  if(mode==='touch'){
-    document.addEventListener('touchmove', onTouchMove, {passive:false});
-    document.addEventListener('touchend',  onTouchEnd);
-    document.addEventListener('touchcancel', cancelTouchDrag);
-  } else {
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup',   onMouseUp);
-  }
-}
-
-/* ── MOUSE ── */
-function onMouseDown(e, idx){
-  if(board[idx]?.isProducer) return;
-  e.preventDefault();
-  beginDrag(idx, e.clientX, e.clientY, 'mouse');
-}
-function onMouseMove(e){ moveGhost(e.clientX, e.clientY); }
-function onMouseUp(e){
-  const el=document.elementFromPoint(e.clientX, e.clientY);
-  const cell=el?.closest('[data-idx]');
-  if(cell) dropOn(parseInt(cell.dataset.idx));
-  else endDrag();
-  clearDragOver();
-  document.removeEventListener('mousemove', onMouseMove);
-  document.removeEventListener('mouseup',   onMouseUp);
-}
-
-/* ── TOUCH ── */
-function onTouchStart(e, idx){
-  if(board[idx]?.isProducer) return;   // producers use click, not drag
-  const t=e.touches[0];
-  touchStartX=t.clientX; touchStartY=t.clientY;
-
-  // Start a long-press timer; if it fires we begin dragging
-  touchLongPressTimer=setTimeout(()=>{
-    touchLongPressTimer=null;
-    e.preventDefault();               // suppress the eventual click
-    beginDrag(idx, touchStartX, touchStartY, 'touch');
-  }, LONG_PRESS_MS);
-}
-
-function onTouchMove(e){
-  if(!dragStarted){
-    // timer hasn't fired yet — check if finger moved too far (scroll intent)
-    const t=e.touches[0];
-    const dx=t.clientX-touchStartX, dy=t.clientY-touchStartY;
-    if(Math.sqrt(dx*dx+dy*dy)>DRAG_MOVE_THRESH){
-      clearTimeout(touchLongPressTimer);
-      touchLongPressTimer=null;
-    }
-    return;
-  }
-  // We're dragging
-  e.preventDefault();
-  const touch=e.touches[0];
-  moveGhost(touch.clientX, touch.clientY);
-  clearDragOver();
-  // Hide ghost so elementFromPoint finds the cell beneath the finger
-  ghost.style.display='none';
-  const el=document.elementFromPoint(touch.clientX, touch.clientY);
-  ghost.style.display='block';
-  el?.closest('.cell')?.classList.add('drag-over');
-}
-
-function onTouchEnd(e){
-  clearTimeout(touchLongPressTimer); touchLongPressTimer=null;
-  if(!dragStarted){ endDrag(); return; }
-  const t=e.changedTouches[0];
-  // Hide ghost briefly so elementFromPoint sees the cell under finger
-  ghost.style.display='none';
-  const el=document.elementFromPoint(t.clientX, t.clientY);
-  ghost.style.display='block';
-  const cell=el?.closest('[data-idx]');
-  if(cell) dropOn(parseInt(cell.dataset.idx));
-  else endDrag();
-  clearDragOver();
-  document.removeEventListener('touchmove',   onTouchMove);
-  document.removeEventListener('touchend',    onTouchEnd);
-  document.removeEventListener('touchcancel', cancelTouchDrag);
-}
-
-function cancelTouchDrag(){
-  clearTimeout(touchLongPressTimer); touchLongPressTimer=null;
-  endDrag();
-  document.removeEventListener('touchmove',   onTouchMove);
-  document.removeEventListener('touchend',    onTouchEnd);
-  document.removeEventListener('touchcancel', cancelTouchDrag);
-}
-
-function moveGhost(x,y){
-  // Offset upward so the item shows above the finger
-  ghost.style.left=x+'px';
-  ghost.style.top=(y-30)+'px';
-}
-function clearDragOver(){
-  document.querySelectorAll('.drag-over').forEach(c=>c.classList.remove('drag-over'));
-}
-function endDrag(){
-  ghost.style.display='none';
-  dragSrcIdx=null; dragMode=null; dragStarted=false;
-  renderBoard();
-}
+/* no drag & drop — this is a tap-to-merge game */
 
 /* ══════════════════════════════════════
    MODALS
 ══════════════════════════════════════ */
-function openModal(type){
+function openModal(type, outOfEnergy=false){
   const overlay=document.getElementById('modal-overlay');
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
@@ -925,9 +836,9 @@ function openModal(type){
     title.textContent='How to Play';
     body.innerHTML=[
       ['Tap 🪴 or 🧊 to spawn ingredients','⚡ costs 1 energy'],
-      ['Drag same items together to merge','They evolve to higher level!'],
-      ['Deliver items to earn Gold','Tap Deliver when it lights up 🟢'],
-      ['Buy Energy refills in the Shop','Keep the kitchen running! 🛒']
+      ['Tap an item to select it','A gold ring appears around it'],
+      ['Tap a matching item to merge','They evolve to a higher level!'],
+      ['Deliver items to earn Gold','Tap Deliver when it lights up 🟢']
     ].map(([t,s],i)=>`
       <div class="help-step">
         <div class="help-num">${i+1}</div>
@@ -952,7 +863,12 @@ function openModal(type){
   }
   else if(type==='shop'){
     title.textContent='Shop';
+    const alertHtml = outOfEnergy
+      ? `<div class="energy-alert">⚡ Out of Energy! Refill to keep going.</div>`
+      : '';
     body.innerHTML=`
+      ${alertHtml}
+      <div class="shop-gold-bal">🪙 Your balance: <span id="modal-gold">${gold}</span> gold</div>
       <div class="shop-hero">
         <div class="shop-zap">⚡</div>
         <div class="shop-title">Energy Refill</div>
@@ -1031,17 +947,6 @@ function toast(msg){
 
 /* ── GO ── */
 render();
-
-// Function for a light "tick" (picking up)
-function hapticTick() {
-  if (navigator.vibrate) navigator.vibrate(10);
-}
-
-// Function for a stronger "pop" (merging)
-function hapticSuccess() {
-  if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
-}
-
 </script>
 </body>
 </html>
