@@ -23,10 +23,10 @@ This creates a short but meaningful **tension loop**: Spawn → Merge → Fulfil
 > 📸 *Screenshots — board mid-session with active orders*
 >
 > <img width="430" height="791" alt="Screenshot 2026-03-25 124311" src="https://github.com/user-attachments/assets/e2a0a9b1-177b-4661-ab80-9e7abbe430cc" />
->
+
 > 📸 *Screenshots — Energy refill in shop*
 >
-<img width="412" height="790" alt="Screenshot 2026-03-25 124341" src="https://github.com/user-attachments/assets/d4c944ab-6fa0-40c5-9626-58fb50aad0d7" />
+><img width="412" height="790" alt="Screenshot 2026-03-25 124341" src="https://github.com/user-attachments/assets/d4c944ab-6fa0-40c5-9626-58fb50aad0d7" />
 
 
 ---
