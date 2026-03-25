@@ -10,9 +10,9 @@ A mobile-first merge-2 game prototype exploring item evolution trees, resource-c
 
 Mercantail started as a **market research project** before becoming a prototype.
 
-The merge-economy genre has seen sustained breakout growth since 2023 — titles like *Merge Mansion* and *Merge County* have demonstrated strong retention and monetisation in the casual mobile space. Yet the specific "Merge-to-Sell" loop — where merging feeds a shop or order economy rather than just a board — remains a relatively underexplored design space with room for a distinctive entry.
+The merge-economy genre has seen sustained breakout growth since 2023 — titles like *Gossip Harbor*, *Merge Mansion* and *Merge County* have demonstrated strong retention and monetisation in the casual mobile space. Yet the specific "Merge-to-Sell" loop — where merging feeds a shop or order economy rather than just a board — remains a relatively underexplored design space with room for a distinctive entry.
 
-The prototype is the product recommendation made tangible: a playable hypothesis about what a compelling, character-driven take on this loop could look like. The core design question it answers is *how do you make a merge loop feel purposeful beyond just filling a board?*
+The prototype is the product recommendation made tangible: a playable hypothesis about what a compelling, character-driven take on this loop could look like. The core design question it answers is *how do you make a merge loop feel purposeful beyond just filling a board, without complex meta?*
 
 The answer explored here is a **Shop Economy** — players manage limited energy (⚡ Zaps) to evolve items up an evolution tree, then fulfill character-driven orders for Gold. Every merge decision has weight: do you evolve for a high-value order, or sell lower-tier items to refill energy now?
 
@@ -20,9 +20,13 @@ This creates a short but meaningful **tension loop**: Spawn → Merge → Fulfil
 
 ---
 
-> 📸 *Screenshots — board mid-session with active orders, Energy refill in shop*
+> 📸 *Screenshots — board mid-session with active orders*
 >
-> <img width="430" height="791" alt="Screenshot 2026-03-25 124311" src="https://github.com/user-attachments/assets/e2a0a9b1-177b-4661-ab80-9e7abbe430cc" />,<img width="412" height="790" alt="Screenshot 2026-03-25 124341" src="https://github.com/user-attachments/assets/d4c944ab-6fa0-40c5-9626-58fb50aad0d7" />
+> <img width="430" height="791" alt="Screenshot 2026-03-25 124311" src="https://github.com/user-attachments/assets/e2a0a9b1-177b-4661-ab80-9e7abbe430cc" />
+>
+> 📸 *Screenshots — Energy refill in shop*
+>
+<img width="412" height="790" alt="Screenshot 2026-03-25 124341" src="https://github.com/user-attachments/assets/d4c944ab-6fa0-40c5-9626-58fb50aad0d7" />
 
 
 ---
@@ -42,7 +46,6 @@ Three rotating customer orders give the player a purpose-driven reason to keep m
 
 ### Mobile-First UX
 - Max-width 430px shell, locked orientation, no drag-and-drop — built entirely around **tap-to-select / tap-to-merge** for one-handed play.
-- Inspired by Tripledot's "thumb play" UX philosophy.
 - Touch-optimised: `webkit-overflow-scrolling`, `safe-area-inset` padding, tap-highlight disabled.
 
 ### Feedback & Notification System
