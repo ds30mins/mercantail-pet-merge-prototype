@@ -660,6 +660,7 @@ html,body{
     <div>
       <div id="dev-logger-title">🛠 MERCANTAIL DEV LOGGER</div>
       <div id="dev-logger-meta"></div>
+      <div id="dl-sync-status" style="font-size:9px;margin-top:3px;color:#4a9850;letter-spacing:.04em;"></div>
     </div>
     <button id="dev-logger-close">✕ Close</button>
   </div>
@@ -1072,8 +1073,14 @@ function toast(msg){
    exports CSV matching the Mercantail Playtest Tracker schema.
 ══════════════════════════════════════ */
 const Logger = (function(){
+  /* ══════════════════════════════════════
+     GOOGLE SHEETS CONFIG
+     Paste your Apps Script Web App URL below.
+     Leave empty string to use CSV-only mode.
+  ══════════════════════════════════════ */
+  const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwJeKK9vPN5q0c-Gg65wVcoyPYeGoQ6MjoOoUthpJxWT0Uyg3bjuZ5ECcVSLciA6TGx/exec'; // ← PASTE YOUR DEPLOYED WEB APP URL HERE
+
   /* ── Session / Player IDs ── */
-  // Auto-increment session number stored in sessionStorage so refreshes bump it
   const _sNum = ((+sessionStorage.getItem('_mt_snum')||0) + 1);
   sessionStorage.setItem('_mt_snum', _sNum);
   const SESSION_ID = 'S' + String(_sNum).padStart(2,'0');
@@ -1090,6 +1097,44 @@ const Logger = (function(){
   //  Energy Before, Energy After, Gold Before, Gold After, Order Slot, Churn Signal?, Shop Voluntary?, Notes]
   const _rows = [];
   let _stats = {spawned:0,merged:0,orders:0,shopOpened:0,energyRefilled:0};
+
+  /* ── Send a row to Google Sheets via Apps Script webhook ── */
+  // Uses navigator.sendBeacon for fire-and-forget (works even on page unload).
+  // Falls back to fetch() if Beacon isn't supported.
+  // Completely silent on failure — never interrupts gameplay.
+  function _sendToSheets(row, rowIndex){
+    if(!SHEETS_WEBHOOK_URL) return;
+    const payload = JSON.stringify({
+      autoId:       rowIndex,
+      session:      row.session,
+      player:       row.player,
+      timestamp:    row.timestamp,
+      event:        row.event,
+      itemPath:     row.itemPath,
+      tierBefore:   row.tierBefore,
+      tierAfter:    row.tierAfter,
+      energyBefore: row.energyBefore,
+      energyAfter:  row.energyAfter,
+      goldBefore:   row.goldBefore,
+      goldAfter:    row.goldAfter,
+      orderSlot:    row.orderSlot,
+      churnSignal:  row.churnSignal,
+      shopVoluntary:row.shopVoluntary,
+      notes:        row.notes
+    });
+    try {
+      if(navigator.sendBeacon){
+        const blob = new Blob([payload], {type:'application/json'});
+        navigator.sendBeacon(SHEETS_WEBHOOK_URL, blob);
+      } else {
+        fetch(SHEETS_WEBHOOK_URL, {
+          method:'POST', body:payload,
+          headers:{'Content-Type':'application/json'},
+          keepalive:true
+        }).catch(()=>{});
+      }
+    } catch(e){}
+  }
 
   /* ── Core log function ── */
   function log(eventType, extra={}){
@@ -1112,6 +1157,7 @@ const Logger = (function(){
       notes:      extra.notes || ''
     };
     _rows.push(row);
+    _sendToSheets(row, _rows.length);
     // update counters
     if(eventType==='item_spawned')    _stats.spawned++;
     if(eventType==='item_merged')     _stats.merged++;
@@ -1134,6 +1180,10 @@ const Logger = (function(){
     el('dls-orders').textContent  = _stats.orders;
     document.getElementById('dev-logger-meta').textContent =
       SESSION_ID + ' · ' + PLAYER_ID + ' · ' + _rows.length + ' events';
+    const syncEl = document.getElementById('dl-sync-status');
+    if(syncEl) syncEl.textContent = SHEETS_WEBHOOK_URL
+      ? '🟢 Syncing to Google Sheets'
+      : '⚪ CSV-only mode — no webhook configured';
     document.getElementById('dl-session-display').textContent =
       'Session '+SESSION_ID+' · Player '+PLAYER_ID;
   }
