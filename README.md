@@ -74,6 +74,7 @@ n=9 sessions · 2,255 events logged · March 2026 · convenience sample · findi
 | Players opening shop | 8/9 (89%) | Energy gate working as designed | 
 | Players reaching Tier 2+ item | 3/9 (33%) | Critical onboarding gap — primary v2 hypothesis | 
 | Session length range | 25s – 899s | Bimodal — discovery threshold at ~3 minutes | 
+
 Three players with no contact with each other independently raised the same gap: the game lacks escalating challenge or a sense of meaningful progression beyond gold accumulation. Convergent unprompted feedback is a stronger signal than any single data point.
 
 Primary hypothesis formed: Players who don't complete their first merge chain within 90 seconds disengage before reaching the commerce loop. The onboarding sequence should prioritise a guided first merge — not a free-play start.
