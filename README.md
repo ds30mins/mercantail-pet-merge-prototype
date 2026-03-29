@@ -75,7 +75,9 @@ n=9 sessions · 2,255 events logged · March 2026 · convenience sample · findi
 | Players reaching Tier 2+ item | 3/9 (33%) | Critical onboarding gap — primary v2 hypothesis | 
 | Session length range | 25s – 899s | Bimodal — discovery threshold at ~3 minutes | 
 
-Three players with no contact with each other independently raised the same gap: the game lacks escalating challenge or a sense of meaningful progression beyond gold accumulation. 
+Key findings from the players' review: 
+1. the game lacks escalating challenge or a sense of meaningful progression beyond gold accumulation.
+2. the game needs onboarding tutorial and several first items to merge for new players.
 
 Primary hypothesis formed: Players who don't complete their first merge chain within 90 seconds disengage before reaching the commerce loop. The onboarding sequence should prioritise a guided first merge — not a free-play start.
 
