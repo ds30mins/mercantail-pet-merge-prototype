@@ -8,15 +8,13 @@ A mobile-first merge-2 game prototype exploring item evolution trees, resource-c
 
 ## 🎯 Product Vision
 
-Mercantail started as a **market research project** before becoming a prototype.
+Mercantail started as a market research project before becoming a prototype.
 
-The merge-economy genre has seen sustained breakout growth since 2023 — titles like *Gossip Harbor*, *Merge Mansion* and *Merge County* have demonstrated strong retention and monetisation in the casual mobile space. Yet the specific "Merge-to-Sell" loop — where merging feeds a shop or order economy rather than just a board — remains a relatively underexplored design space with room for a distinctive entry.
-
-The prototype is the product recommendation made tangible: a playable hypothesis about what a compelling, character-driven take on this loop could look like. The core design question it answers is *how do you make a merge loop feel purposeful beyond just filling a board, without complex meta?*
-
-The answer explored here is a **Shop Economy** — players manage limited energy (⚡ Zaps) to evolve items up an evolution tree, then fulfill character-driven orders for Gold. Every merge decision has weight: do you evolve for a high-value order, or sell lower-tier items to refill energy now?
-
-This creates a short but meaningful **tension loop**: Spawn → Merge → Fulfill Orders → Manage Resources → Repeat.
+The Merge-2 genre generated $1.4B in revenue in 2025 — growing 80% YoY and earning $4.70 per download, nearly 3× Match-3. 
+Yet despite that growth, the top titles (Gossip Harbor, Travel Town, Merge Mansion) share the same structural pattern: order fulfillment is a mechanism to fund something else — a renovation, a mystery narrative, a destination story. The orders are the means. The meta layer is the end.
+The gap this prototype tests: no top Merge-2 title has made the merchant identity itself the emotional core. In Mercantail, pets don't evolve to unlock a story — they evolve as your shop companions, permanently visible in the park you're building. The commerce loop isn't a bridge to the meta. It is the meta.
+The dominant Merge-2 retention model works — but it requires 50+ person teams and 500+ events per year to sustain. Mercantail is designed around a different philosophy: mechanic depth and emotional investment in pet evolution as the D30 retention driver, rather than content volume. 
+This prototype is the validation step. The pet evolution and park-building meta layer is intentionally excluded — if players disengage during the core merge-and-fulfill loop, adding a meta layer might wouldn't fix it. The aimed sequencing is to validate the session mechanic first, then build the identity layer on top of a loop that already holds attention.
 
 ---
 
@@ -67,17 +65,21 @@ Three rotating customer orders give the player a purpose-driven reason to keep m
 
 ---
 
-## 📊 KPIs This Prototype Is Designed to Measure
+## 📊 Playtest Results & KPIs
+n=9 sessions · 2,255 events logged · March 2026 · convenience sample · findings are directional
 
-If this prototype were taken to soft-launch or live ops, the metrics I'd instrument first:
+| Metric | Result | Implication | 
+| Players fulfilling ≥1 order | 8/9 (89%) | Core loop engagement validated — well above ~60% benchmark | 
+| Players opening shop | 8/9 (89%) | Energy gate working as designed | 
+| Players reaching Tier 2+ item | 3/9 (33%) | Critical onboarding gap — primary v2 hypothesis | 
+| Session length range | 25s – 899s | Bimodal — discovery threshold at ~3 minutes | 
+Three players with no contact with each other independently raised the same gap: the game lacks escalating challenge or a sense of meaningful progression beyond gold accumulation. Convergent unprompted feedback is a stronger signal than any single data point.
 
-- **Session length & merge depth** — are players reaching Tier 3+ items before churning?
-- **Energy depletion rate** — how quickly does the average session hit the energy gate?
-- **Shop conversion rate** — of players who hit 0 energy, what % open the Shop? What % convert?
-- **Order fulfillment rate** — are orders too hard (under-fulfilled) or too easy (fulfilled instantly)?
-- **Gold economy balance** — is the 100g refill cost calibrated correctly relative to average order rewards?
+Primary hypothesis formed: Players who don't complete their first merge chain within 90 seconds disengage before reaching the commerce loop. The onboarding sequence should prioritise a guided first merge — not a free-play start.
 
-These metrics would directly inform A/B test hypotheses around energy costs, board size, and order reward scaling.
+Next test: Guided vs. free-play onboarding — targeting lift from 33% to 50%+ on Tier 2+ progression rate.
+→ Full playtest brief with session-level data, funnel analysis, and A/B test design: [link]
+→ Full portfolio brief with market research, competitor analysis, and roadmap: [link]
 
 ---
 
@@ -116,6 +118,7 @@ Given more time, the highest-priority additions would be:
 
 ---
 
-📄 *A full product brief — including market research, competitor analysis, and success metrics — is available upon request.*
+→ Full playtest brief with session-level data, funnel analysis, and A/B test design: [link]
+→ Full portfolio brief with market research, competitor analysis, and roadmap: [link]
 
 *Built as a personal project to explore F2P merge mechanics and mobile UX design.*
