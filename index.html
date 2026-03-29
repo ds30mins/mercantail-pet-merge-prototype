@@ -469,6 +469,103 @@ html,body{
 }
 .help-txt{font-size:12px;font-weight:600;color:var(--ink2);line-height:1.4;}
 
+/* ══════════════════════════════════════
+   DEV LOGGER OVERLAY  (invisible during play)
+══════════════════════════════════════ */
+#dev-logger{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;flex-direction:column;
+  background:rgba(10,8,6,.93);
+  font-family:'Courier New',monospace;
+  font-size:11px;color:#d4b896;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+}
+#dev-logger.open{transform:translateY(0);pointer-events:all;}
+#dev-logger-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px 8px;
+  background:#1a1208;border-bottom:1px solid #3a2810;
+  flex-shrink:0;
+}
+#dev-logger-title{
+  font-size:12px;font-weight:700;color:#f0a830;letter-spacing:.08em;
+}
+#dev-logger-meta{font-size:10px;color:#9a7850;}
+#dev-logger-close{
+  background:none;border:1px solid #3a2810;border-radius:4px;
+  color:#9a7850;font-size:11px;cursor:pointer;padding:3px 8px;
+}
+#dev-logger-close:hover{border-color:#f0a830;color:#f0a830;}
+#dev-logger-stats{
+  display:flex;gap:0;flex-shrink:0;
+  background:#120e08;border-bottom:1px solid #2a1e10;
+}
+.dl-stat{
+  flex:1;padding:6px 4px;text-align:center;
+  border-right:1px solid #2a1e10;
+}
+.dl-stat:last-child{border-right:none;}
+.dl-stat-val{font-size:14px;font-weight:700;color:#f0a830;}
+.dl-stat-lbl{font-size:8px;color:#6a4830;letter-spacing:.06em;text-transform:uppercase;margin-top:1px;}
+#dev-log-rows{
+  flex:1;overflow-y:auto;padding:6px 0;
+}
+#dev-log-rows::-webkit-scrollbar{width:4px;}
+#dev-log-rows::-webkit-scrollbar-thumb{background:#3a2810;border-radius:2px;}
+.dl-row{
+  display:grid;
+  grid-template-columns:38px 60px 1fr 52px 52px;
+  gap:0;padding:3px 10px;
+  border-bottom:1px solid #1a1208;
+  align-items:center;
+}
+.dl-row:hover{background:#1a1208;}
+.dl-row-num{color:#4a3820;font-size:9px;}
+.dl-row-time{color:#9a7850;}
+.dl-row-event{color:#d4b896;}
+.dl-row-event .event-tag{
+  display:inline-block;padding:1px 5px;border-radius:3px;
+  font-size:9px;font-weight:700;margin-right:4px;letter-spacing:.04em;
+}
+.tag-item_spawned{background:#1a3a10;color:#6bc840;}
+.tag-item_merged{background:#3a2810;color:#f0a830;}
+.tag-order_fulfilled{background:#102030;color:#5b9fd4;}
+.tag-shop_opened{background:#2a1020;color:#e84848;}
+.tag-energy_refilled{background:#1a2a3a;color:#7bc8f0;}
+.tag-session_ended{background:#2a1a10;color:#c8894a;}
+.dl-row-e{color:#7bc8f0;text-align:right;}
+.dl-row-g{color:#f0a830;text-align:right;}
+#dev-logger-footer{
+  display:flex;gap:8px;padding:10px 14px;
+  background:#1a1208;border-top:1px solid #3a2810;
+  flex-shrink:0;align-items:center;
+}
+#dev-logger-footer button{
+  padding:7px 14px;border:1px solid #3a2810;border-radius:5px;
+  font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;
+  letter-spacing:.05em;transition:all .15s;
+}
+#dl-btn-csv{
+  background:#1a3a10;color:#6bc840;border-color:#2a5a18;
+}
+#dl-btn-csv:hover{background:#2a5a18;color:#90e860;}
+#dl-btn-clear{
+  background:#2a1208;color:#9a7850;border-color:#3a2010;
+}
+#dl-btn-clear:hover{background:#3a1808;color:#d4622a;}
+#dl-session-display{
+  flex:1;font-size:9px;color:#6a4830;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* Logo tap area — invisible hotspot */
+#logo-tap-zone{
+  position:absolute;top:0;left:0;width:80px;height:52px;
+  cursor:default;-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;
+}
+
 /* ── TOAST ── */
 #toast{
   position:fixed;top:68px;left:50%;transform:translateX(-50%) translateY(-8px);
@@ -511,6 +608,8 @@ html,body{
   <!-- HEADER -->
   <header id="header">
     <div class="logo">🐾 Mercan<span>tail</span></div>
+    <!-- invisible long-press zone on logo triggers dev logger -->
+    <div id="logo-tap-zone"></div>
     <div class="hud-row">
       <div class="hud-chip">
         <div class="hud-icon zap">⚡</div>
@@ -555,7 +654,29 @@ html,body{
   </div><!-- /scroll-body -->
 </div><!-- /app -->
 
-
+<!-- DEV LOGGER OVERLAY -->
+<div id="dev-logger">
+  <div id="dev-logger-header">
+    <div>
+      <div id="dev-logger-title">🛠 MERCANTAIL DEV LOGGER</div>
+      <div id="dev-logger-meta"></div>
+    </div>
+    <button id="dev-logger-close">✕ Close</button>
+  </div>
+  <div id="dev-logger-stats">
+    <div class="dl-stat"><div class="dl-stat-val" id="dls-time">0:00</div><div class="dl-stat-lbl">Time</div></div>
+    <div class="dl-stat"><div class="dl-stat-val" id="dls-events">0</div><div class="dl-stat-lbl">Events</div></div>
+    <div class="dl-stat"><div class="dl-stat-val" id="dls-spawned">0</div><div class="dl-stat-lbl">Spawned</div></div>
+    <div class="dl-stat"><div class="dl-stat-val" id="dls-merged">0</div><div class="dl-stat-lbl">Merged</div></div>
+    <div class="dl-stat"><div class="dl-stat-val" id="dls-orders">0</div><div class="dl-stat-lbl">Orders</div></div>
+  </div>
+  <div id="dev-log-rows"></div>
+  <div id="dev-logger-footer">
+    <button id="dl-btn-csv">⬇ Download CSV</button>
+    <button id="dl-btn-clear">🗑 Clear Log</button>
+    <div id="dl-session-display"></div>
+  </div>
+</div>
 
 <!-- MODAL -->
 <div id="modal-overlay" onclick="overlayClick(event)">
@@ -944,6 +1065,296 @@ function toast(msg){
   clearTimeout(toastT);
   toastT=setTimeout(()=>el.classList.remove('show'),2200);
 }
+
+/* ══════════════════════════════════════
+   PLAYTESTER LOGGER
+   Hooks into game functions, auto-reads state,
+   exports CSV matching the Mercantail Playtest Tracker schema.
+══════════════════════════════════════ */
+const Logger = (function(){
+  /* ── Session / Player IDs ── */
+  // Auto-increment session number stored in sessionStorage so refreshes bump it
+  const _sNum = ((+sessionStorage.getItem('_mt_snum')||0) + 1);
+  sessionStorage.setItem('_mt_snum', _sNum);
+  const SESSION_ID = 'S' + String(_sNum).padStart(2,'0');
+  const PLAYER_ID  = 'P' + String(_sNum).padStart(2,'0');
+
+  /* ── Timer ── */
+  const _t0 = Date.now();
+  function elapsed(){ return ((Date.now() - _t0) / 1000).toFixed(1); }
+  function fmtTime(s){ const sec=Math.floor(s); return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'); }
+
+  /* ── Log store ── */
+  // Each row matches the tracker schema columns exactly
+  // [Session, Player, Timestamp(s), Event Type, Item Path, Tier Before, Tier After,
+  //  Energy Before, Energy After, Gold Before, Gold After, Order Slot, Churn Signal?, Shop Voluntary?, Notes]
+  const _rows = [];
+  let _stats = {spawned:0,merged:0,orders:0,shopOpened:0,energyRefilled:0};
+
+  /* ── Core log function ── */
+  function log(eventType, extra={}){
+    const ts = parseFloat(elapsed());
+    const row = {
+      session:    SESSION_ID,
+      player:     PLAYER_ID,
+      timestamp:  ts,
+      event:      eventType,
+      itemPath:   extra.itemPath  || '',
+      tierBefore: extra.tierBefore != null ? extra.tierBefore : '',
+      tierAfter:  extra.tierAfter  != null ? extra.tierAfter  : '',
+      energyBefore: extra.energyBefore != null ? extra.energyBefore : '',
+      energyAfter:  extra.energyAfter  != null ? extra.energyAfter  : '',
+      goldBefore: extra.goldBefore != null ? extra.goldBefore : '',
+      goldAfter:  extra.goldAfter  != null ? extra.goldAfter  : '',
+      orderSlot:  extra.orderSlot  != null ? extra.orderSlot  : '',
+      churnSignal: extra.churnSignal || '',
+      shopVoluntary: extra.shopVoluntary != null ? extra.shopVoluntary : '',
+      notes:      extra.notes || ''
+    };
+    _rows.push(row);
+    // update counters
+    if(eventType==='item_spawned')    _stats.spawned++;
+    if(eventType==='item_merged')     _stats.merged++;
+    if(eventType==='order_fulfilled') _stats.orders++;
+    if(eventType==='shop_opened')     _stats.shopOpened++;
+    if(eventType==='energy_refilled') _stats.energyRefilled++;
+
+    _appendRowUI(row, _rows.length);
+    _updateStats();
+  }
+
+  /* ── UI update helpers ── */
+  function _updateStats(){
+    const ts = parseFloat(elapsed());
+    const el = id=>document.getElementById(id);
+    el('dls-time').textContent    = fmtTime(ts);
+    el('dls-events').textContent  = _rows.length;
+    el('dls-spawned').textContent = _stats.spawned;
+    el('dls-merged').textContent  = _stats.merged;
+    el('dls-orders').textContent  = _stats.orders;
+    document.getElementById('dev-logger-meta').textContent =
+      SESSION_ID + ' · ' + PLAYER_ID + ' · ' + _rows.length + ' events';
+    document.getElementById('dl-session-display').textContent =
+      'Session '+SESSION_ID+' · Player '+PLAYER_ID;
+  }
+
+  function _appendRowUI(row, idx){
+    const wrap = document.getElementById('dev-log-rows');
+    if(!wrap) return;
+    const div = document.createElement('div');
+    div.className = 'dl-row';
+    const ei = row.energyAfter !== '' ? row.energyAfter : (row.energyBefore !== '' ? row.energyBefore : '—');
+    const gi = row.goldAfter   !== '' ? row.goldAfter   : (row.goldBefore   !== '' ? row.goldBefore   : '—');
+    div.innerHTML =
+      `<div class="dl-row-num">#${idx}</div>`+
+      `<div class="dl-row-time">${row.timestamp}s</div>`+
+      `<div class="dl-row-event"><span class="event-tag tag-${row.event}">${row.event.replace('_',' ')}</span>`+
+        (row.itemPath?`<span style="color:#6a4830">${row.itemPath}</span>`:``)+`</div>`+
+      `<div class="dl-row-e">⚡${ei}</div>`+
+      `<div class="dl-row-g">🪙${gi}</div>`;
+    wrap.appendChild(div);
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  /* ── CSV export ── */
+  function downloadCSV(){
+    const HEADERS = [
+      'Auto ID','Session','Player','Timestamp (seconds)',
+      'Event Type','Item Path','Tier Before','Tier After',
+      'Energy Before','Energy After','Gold Before','Gold After',
+      'Order Slot','Churn Signal?','Shop Voluntary?','Qualitative Notes'
+    ];
+    const escape = v => {
+      const s = String(v==null?'':v);
+      return s.includes(',') || s.includes('"') || s.includes('\n')
+        ? '"'+s.replace(/"/g,'""')+'"' : s;
+    };
+    const lines = [HEADERS.join(',')];
+    _rows.forEach((r,i)=>{
+      lines.push([
+        i+1, r.session, r.player, r.timestamp,
+        r.event, r.itemPath, r.tierBefore, r.tierAfter,
+        r.energyBefore, r.energyAfter, r.goldBefore, r.goldAfter,
+        r.orderSlot, r.churnSignal, r.shopVoluntary, r.notes
+      ].map(escape).join(','));
+    });
+    const blob = new Blob([lines.join('\r\n')], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `mercantail_${SESSION_ID}_${Date.now()}.csv`;
+    a.click();
+  }
+
+  /* ── Toggle overlay ── */
+  let _open = false;
+  function toggle(){
+    _open = !_open;
+    document.getElementById('dev-logger').classList.toggle('open', _open);
+    if(_open) _updateStats();
+  }
+  function close(){ _open=false; document.getElementById('dev-logger').classList.remove('open'); }
+
+  /* ── Wire up UI buttons ── */
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('dev-logger-close').addEventListener('click', close);
+    document.getElementById('dl-btn-csv').addEventListener('click', downloadCSV);
+    document.getElementById('dl-btn-clear').addEventListener('click', ()=>{
+      _rows.length=0;
+      Object.keys(_stats).forEach(k=>_stats[k]=0);
+      document.getElementById('dev-log-rows').innerHTML='';
+      _updateStats();
+    });
+    _updateStats();
+  });
+
+  /* ── Logo long-press / double-tap trigger ── */
+  (function setupTrigger(){
+    let _pressTimer=null, _lastTap=0;
+    const zone = document.getElementById('logo-tap-zone');
+    if(!zone) return;
+
+    // Long press (500ms) — works great on mobile
+    zone.addEventListener('touchstart', e=>{
+      _pressTimer = setTimeout(()=>{ e.preventDefault(); toggle(); }, 500);
+    }, {passive:false});
+    zone.addEventListener('touchend',  ()=>clearTimeout(_pressTimer));
+    zone.addEventListener('touchmove', ()=>clearTimeout(_pressTimer));
+
+    // Double-tap fallback (desktop + fast mobile tap)
+    zone.addEventListener('click', ()=>{
+      const now = Date.now();
+      if(now - _lastTap < 350) toggle();
+      _lastTap = now;
+    });
+  })();
+
+  /* ── Kick off live stats timer ── */
+  setInterval(_updateStats, 1000);
+
+  return { log, SESSION_ID, PLAYER_ID, elapsed, toggle };
+})();
+
+/* ══════════════════════════════════════
+   INSTRUMENT GAME FUNCTIONS
+   Wrap originals — Logger fires, then original runs.
+   All energy/gold reads happen at call-time from live state.
+══════════════════════════════════════ */
+
+/* 1. produceItem → item_spawned */
+const _orig_produceItem = produceItem;
+produceItem = function(idx){
+  const eBefore = energy, gBefore = gold;
+  _orig_produceItem(idx);
+  // Only log if energy actually changed (i.e. spawn succeeded)
+  if(energy < eBefore){
+    const spawned = board.find((c,i)=>c&&!c.isProducer&&i!==idx&&board[i]);
+    // find most recently placed item (non-producer, non-null)
+    const newCell = (() => {
+      // energy decreased means spawn happened; find the new item
+      // We compare before/after: new item is the one that wasn't there before
+      // Simple approach: the empty slot that got filled = selIdx
+      return selIdx !== null ? board[selIdx] : null;
+    })();
+    Logger.log('item_spawned', {
+      itemPath: newCell ? (newCell.tree||'?')+' > Lv1 ('+newCell.n+')' : '',
+      tierBefore: '',
+      tierAfter: newCell ? newCell.lv : 1,
+      energyBefore: eBefore,
+      energyAfter: energy,
+      goldBefore: gBefore,
+      goldAfter: gold
+    });
+  }
+};
+
+/* 2. doMerge → item_merged */
+const _orig_doMerge = doMerge;
+doMerge = function(srcIdx, tgtIdx){
+  const src = board[srcIdx];
+  const tKey = src ? (src.tree || treeKeyOf(src.id)) : '?';
+  const tierBefore = src ? src.lv : '';
+  const eBefore = energy, gBefore = gold;
+  const result = _orig_doMerge(srcIdx, tgtIdx);
+  if(result !== false){
+    const merged = board[tgtIdx];
+    Logger.log('item_merged', {
+      itemPath: tKey + ' > Lv' + tierBefore + ' → Lv' + (merged ? merged.lv : (tierBefore+1)),
+      tierBefore: tierBefore,
+      tierAfter: merged ? merged.lv : (tierBefore ? tierBefore+1 : ''),
+      energyBefore: eBefore,
+      energyAfter: energy,
+      goldBefore: gBefore,
+      goldAfter: gold
+    });
+  }
+  return result;
+};
+
+/* 3. deliverOrder → order_fulfilled */
+const _orig_deliverOrder = deliverOrder;
+deliverOrder = function(oid){
+  const order = orders.find(o=>o.id===oid);
+  const slotIdx = orders.indexOf(order) + 1;
+  const eBefore = energy, gBefore = gold;
+  _orig_deliverOrder(oid);
+  // Log after the timeout fires (order.reward added to gold)
+  // We schedule it slightly after the existing 480ms timeout
+  setTimeout(()=>{
+    Logger.log('order_fulfilled', {
+      itemPath: order ? (itemById(order.reqId)?.n||'') : '',
+      tierBefore: order ? (itemById(order.reqId)?.lv||'') : '',
+      tierAfter: '',
+      energyBefore: eBefore,
+      energyAfter: energy,
+      goldBefore: gBefore,
+      goldAfter: gold,
+      orderSlot: slotIdx
+    });
+  }, 500);
+};
+
+/* 4. openModal → shop_opened */
+const _orig_openModal = openModal;
+openModal = function(type, outOfEnergy=false){
+  const eBefore = energy, gBefore = gold;
+  _orig_openModal(type, outOfEnergy);
+  if(type === 'shop'){
+    Logger.log('shop_opened', {
+      energyBefore: eBefore,
+      energyAfter: energy,
+      goldBefore: gBefore,
+      goldAfter: gold,
+      shopVoluntary: outOfEnergy ? 'No' : 'Yes',
+      churnSignal: (energy <= 0) ? 'Y' : ''
+    });
+  }
+};
+
+/* 5. buyEnergy → energy_refilled */
+const _orig_buyEnergy = buyEnergy;
+buyEnergy = function(){
+  const eBefore = energy, gBefore = gold;
+  _orig_buyEnergy();
+  if(energy > eBefore){ // only fires if purchase succeeded
+    Logger.log('energy_refilled', {
+      energyBefore: eBefore,
+      energyAfter: energy,
+      goldBefore: gBefore,
+      goldAfter: gold
+    });
+  }
+};
+
+/* 6. session_ended — fires on page unload */
+window.addEventListener('beforeunload', ()=>{
+  Logger.log('session_ended', {
+    energyBefore: energy,
+    energyAfter: energy,
+    goldBefore: gold,
+    goldAfter: gold,
+    notes: 'page unload at '+Logger.elapsed()+'s'
+  });
+});
 
 /* ── GO ── */
 render();
