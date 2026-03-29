@@ -81,6 +81,7 @@ Primary hypothesis formed: Players who don't complete their first merge chain wi
 
 Next test: Guided vs. free-play onboarding — targeting lift from 33% to 50%+ on Tier 2+ progression rate.
 > → Full playtest brief with session-level data, funnel analysis, and A/B test design: [link coming soon]
+>
 > → Full portfolio brief with market research, competitor analysis, and roadmap: [link coming soon]
 
 ---
@@ -121,6 +122,7 @@ Given more time, the highest-priority additions would be:
 ---
 
 > → Full playtest brief with session-level data, funnel analysis, and A/B test design: [link coming soon]
+>
 > → Full portfolio brief with market research, competitor analysis, and roadmap: [link coming soon]
 
 *Built as a personal project to explore F2P merge mechanics and mobile UX design.*
