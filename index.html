@@ -1078,7 +1078,7 @@ const Logger = (function(){
      Paste your Apps Script Web App URL below.
      Leave empty string to use CSV-only mode.
   ══════════════════════════════════════ */
-  const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwJeKK9vPN5q0c-Gg65wVcoyPYeGoQ6MjoOoUthpJxWT0Uyg3bjuZ5ECcVSLciA6TGx/exec'; // ← PASTE YOUR DEPLOYED WEB APP URL HERE
+  const SHEETS_WEBHOOK_URL = ''; // ← PASTE YOUR DEPLOYED WEB APP URL HERE
 
   /* ── Session / Player IDs ── */
   const _sNum = ((+sessionStorage.getItem('_mt_snum')||0) + 1);
@@ -1123,14 +1123,18 @@ const Logger = (function(){
       notes:        row.notes
     });
     try {
+      // Apps Script doesn't support custom CORS headers on responses,
+      // so we use no-cors mode which skips the preflight entirely.
+      // sendBeacon also skips preflight and works on page unload.
       if(navigator.sendBeacon){
-        const blob = new Blob([payload], {type:'application/json'});
+        const blob = new Blob([payload], {type:'text/plain'});
         navigator.sendBeacon(SHEETS_WEBHOOK_URL, blob);
       } else {
         fetch(SHEETS_WEBHOOK_URL, {
-          method:'POST', body:payload,
-          headers:{'Content-Type':'application/json'},
-          keepalive:true
+          method:'POST',
+          body: payload,
+          mode: 'no-cors',   // ← skips CORS preflight; response is opaque but row still writes
+          keepalive: true
         }).catch(()=>{});
       }
     } catch(e){}
