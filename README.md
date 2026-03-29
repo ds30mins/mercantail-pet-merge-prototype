@@ -69,6 +69,7 @@ Three rotating customer orders give the player a purpose-driven reason to keep m
 n=9 sessions · 2,255 events logged · March 2026 · convenience sample · findings are directional
 
 | Metric | Result | Implication | 
+|---|---|---|
 | Players fulfilling ≥1 order | 8/9 (89%) | Core loop engagement validated — well above ~60% benchmark | 
 | Players opening shop | 8/9 (89%) | Energy gate working as designed | 
 | Players reaching Tier 2+ item | 3/9 (33%) | Critical onboarding gap — primary v2 hypothesis | 
