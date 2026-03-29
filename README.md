@@ -80,8 +80,8 @@ Three players with no contact with each other independently raised the same gap:
 Primary hypothesis formed: Players who don't complete their first merge chain within 90 seconds disengage before reaching the commerce loop. The onboarding sequence should prioritise a guided first merge — not a free-play start.
 
 Next test: Guided vs. free-play onboarding — targeting lift from 33% to 50%+ on Tier 2+ progression rate.
-→ Full playtest brief with session-level data, funnel analysis, and A/B test design: [link]
-→ Full portfolio brief with market research, competitor analysis, and roadmap: [link]
+→ Full playtest brief with session-level data, funnel analysis, and A/B test design: [link coming soon]
+→ Full portfolio brief with market research, competitor analysis, and roadmap: [link coming soon]
 
 ---
 
@@ -120,7 +120,7 @@ Given more time, the highest-priority additions would be:
 
 ---
 
-→ Full playtest brief with session-level data, funnel analysis, and A/B test design: [link]
-→ Full portfolio brief with market research, competitor analysis, and roadmap: [link]
+→ Full playtest brief with session-level data, funnel analysis, and A/B test design: [link coming soon]
+→ Full portfolio brief with market research, competitor analysis, and roadmap: [link coming soon]
 
 *Built as a personal project to explore F2P merge mechanics and mobile UX design.*
