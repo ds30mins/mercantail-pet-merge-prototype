@@ -1,20 +1,12 @@
-# Mercantail — Pet Merge & Economy Prototype
+# Mercantail — Pet & Merge Prototype
 
-A mobile-first merge-2 game prototype exploring item evolution trees, resource-constrained economies, and the "Merge-to-Sell" core loop.
+A mobile-first Merge-2 prototype exploring whether a commerce loop — 
+order targets, energy pacing, reward timing — can hold attention before 
+a meta layer gives players a reason to return.
 
 🕹️ **[Play the prototype →](https://ds30mins.github.io/mercantail-pet-merge-prototype/)**
 
----
-
-## 🎯 Product Vision
-
-Mercantail started as a market research project before becoming a prototype.
-
-The Merge-2 genre generated $1.4B in revenue in 2025 — growing 80% YoY and earning $4.70 per download, nearly 3× Match-3. 
-Yet despite that growth, the top titles (Gossip Harbor, Travel Town, Merge Mansion) share the same structural pattern: order fulfillment is a mechanism to fund something else — a renovation, a mystery narrative, a destination story. The orders are the means. The meta layer is the end.
-The gap this prototype tests: no top Merge-2 title has made the merchant identity itself the emotional core. In Mercantail, pets don't evolve to unlock a story — they evolve as your shop companions, permanently visible in the park you're building. The commerce loop isn't a bridge to the meta. It is the meta.
-The dominant Merge-2 retention model works — but it requires 50+ person teams and 500+ events per year to sustain. Mercantail is designed around a different philosophy: mechanic depth and emotional investment in pet evolution as the D30 retention driver, rather than content volume. 
-This prototype is the validation step. The pet evolution and park-building meta layer is intentionally excluded — if players disengage during the core merge-and-fulfill loop, adding a meta layer might wouldn't fix it. The aimed sequencing is to validate the session mechanic first, then build the identity layer on top of a loop that already holds attention.
+📄 **[Portfolio Brief →](https://docs.google.com/document/d/1kdmXRH-fLKDLwsC0hXd7te4QVDEc1wFu/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)** · **[Playtest Brief →](https://docs.google.com/document/d/1XzXsajKMO2cU8iQv9WPIos2yKFVTmwE4/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)**
 
 ---
 
@@ -26,69 +18,92 @@ This prototype is the validation step. The pet evolution and park-building meta 
 >
 ><img width="412" height="790" alt="Screenshot 2026-03-25 124341" src="https://github.com/user-attachments/assets/d4c944ab-6fa0-40c5-9626-58fb50aad0d7" />
 
+---
+
+## What This Is
+
+Mercantail is a playable product hypothesis. 
+The merge-economy genre has seen sustained breakout growth — Gossip Harbor, Travel Town, and Merge Mansion have demonstrated that strong D30 retention is achievable in casual mobile when the session loop and meta layer work together. 
+The specific design question this prototype tests: does the merge-and-fulfill session loop hold attention on its own, before the meta layer is built?
+
+The prototype deliberately excludes pet evolution and park building. If players disengage during the core loop, adding a meta layer won't fix it. The playtest validates the session mechanic first.
 
 ---
 
-## ✨ Core Features
+## Playtest Results
 
-### Evolution Trees
-Four distinct item paths — **Greens**, **Sprouts**, **Seafood**, and **Meats** — each with 5 levels of progression. Items evolve through merge actions, and players can inspect any item's full evolution path via an in-game modal. Max-level items carry the highest sell value and are required for top-tier orders.
+**n=10 sessions · 5,393 events · ~114 minutes total play · March 2026**
 
-### Resource Economy (Zaps & Gold)
-- **Energy (Zaps):** Each spawn costs 1 Zap. When energy hits zero, the player is gated to the Shop, creating a natural soft-paywall moment — a mechanic directly relevant to F2P monetisation design.
-- **Gold:** Earned through item sales and order fulfillment. Spent to refill energy (+10 Zaps for 100g), simulating a basic IAP loop.
-- The balance between spawn cost and order reward is intentionally tunable — designed as a sandbox for testing economy levers.
+| Finding | Signal | Disposition |
+|---|---|---|
+| Order fulfillment — 100% of sessions | Every session included at least one fulfilled order. Commerce loop is intrinsically motivating once players understand it. | Core loop validated. Green light to build the meta layer. |
+| Session length is bimodal | Under 3 min or over 8 min — no middle ground. P08's two sessions ran 27 and 30 minutes, placing them in the top 1% of mobile session lengths (GameAnalytics 2025). | Onboarding is the lever. Test next. |
+| Tier 5 has no purpose | 6 of 10 sessions reached max tier — but there are no Tier 5 orders. Players who invested found no reward. | Unambiguous design gap. Implement next. |
+| Four players independently raised the same gap | No escalating challenge, no progression structure, no win condition. Convergent unprompted feedback across four players. | Which meta layer earns stronger retention? A/B test next. |
+| Energy gate reliably triggers shop | 9 of 10 sessions hit the energy gate and opened the shop — but always in a friction context, never aspirational. | Economy calibration and delayed first gate. Implement next. |
+| Tutorial gap | Three players independently requested guided onboarding. One session under 1 minute had zero merges completed. | Guided vs. free-play onboarding. A/B test next. |
 
-### Orders System
-Three rotating customer orders give the player a purpose-driven reason to keep merging. Orders specify a required item and a Gold reward, creating goal clarity and influencing which items are worth evolving vs. selling outright. Fulfilled orders refresh automatically, sustaining the loop.
-
-### Mobile-First UX
-- Max-width 430px shell, locked orientation, no drag-and-drop — built entirely around **tap-to-select / tap-to-merge** for one-handed play.
-- Touch-optimised: `webkit-overflow-scrolling`, `safe-area-inset` padding, tap-highlight disabled.
-
-### Feedback & Notification System
-- **Toast notifications** for merge results, sell confirmations, energy warnings, and order deliveries — surfacing key game state changes without interrupting flow.
-- **Particle burst animations** on successful merges and order completions to reinforce positive actions.
-- **Floating coin indicators** on sell actions to make economy feedback feel immediate and satisfying.
+→ Full methodology, session-level event log, complete findings, and 
+A/B test design in the **[Playtest Brief](https://docs.google.com/document/d/1XzXsajKMO2cU8iQv9WPIos2yKFVTmwE4/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)**
 
 ---
 
-## 🧠 Design Decisions & Trade-offs
+## Core Loop
+
+**Session loop:** Spawn item → Merge → Fulfill order → Earn Gold → 
+Manage energy → Repeat
+
+**Meta loop (next build phase):** Fulfill orders → Earn meta rewards → 
+Pet evolves *or* story progresses (A/B test) → Deepens identity 
+investment → Drives D7/D30 return
+
+The tension in each session: do you evolve an item for a high-value 
+order, or sell lower-tier items to refill energy now?
+
+---
+
+<details>
+<summary><strong>What's Built in the Prototype</strong></summary>
+
+<br>
+
+| Feature | Description |
+|---|---|
+| Merge board | 5×6 grid (30 cells). Tap-to-select, tap-to-merge. No drag-and-drop — designed for one-handed mobile play. |
+| 4 item evolution trees | Greens, Sprouts, Seafood, Meats — each with 5 tiers. Players can inspect full evolution path via in-game modal. |
+| Order system | 3 rotating customer orders. Specifies required item and Gold reward. Fulfilled orders refresh automatically. |
+| Energy system | Each spawn costs 1 Energy. When energy hits zero, player is gated to the Shop — the natural soft-paywall moment. |
+| Gold economy | Earned by fulfilling orders. Spent to refill energy (100 Gold → +10 Energy). |
+| Shop | Triggered at energy = 0. Energy refill and Gold purchase simulation. Pearl (hard currency) IAP layer is designed but not yet implemented. |
+| In-game event logger | Embedded dev logger used in P08 sessions — capturing item paths, decimal timestamps, and full economy state automatically. |
+| Mobile-first UX | Max-width 430px, locked orientation, safe-area insets, toast notifications, particle animations on merge/order events. |
+
+</details>
+
+---
+
+<details>
+<summary><strong>Design Decisions & Trade-offs</strong></summary>
+
+<br>
 
 | Decision | Rationale |
 |---|---|
-| Tap-only (no drag) | Reduces accidental moves on small screens; keeps the interaction model learnable in one session |
-| 5×6 board (30 cells) | Small enough to feel constrainted, large enough to hold 2 producers + items-in-progress simultaneously |
-| Energy as the primary constraint | Creates a clear monetisation hook without requiring a timer; aligns with session-length control |
-| Rotating orders (not static) | Ensures replayability and prevents players from optimising to a single "solved" merge path |
-| Sell button always available | Gives players an escape valve to manage board space; also teaches opportunity cost |
+| Tap-only (no drag) | Reduces accidental moves on small screens. Keeps the interaction model learnable in one session. |
+| 5×6 board (30 cells) | Small enough to feel constrained, large enough to hold 2 producers and items-in-progress simultaneously. |
+| Energy as the primary constraint | Creates a clear monetisation hook without requiring a timer. Aligns with session-length control and natural soft-paywall moment. |
+| Rotating orders (not static) | Ensures replayability and prevents players from optimising to a single solved merge path. |
+| Sell button always available | Gives players an escape valve to manage board space. Also teaches opportunity cost — selling a high-tier item early has a real cost. |
+| No meta layer in prototype | If players disengage during the core loop, adding pet evolution won't fix it. Validate the session mechanic before committing to full production scope. |
+
+</details>
 
 ---
 
-## 📊 Playtest Results & KPIs
-n=9 sessions · 2,255 events logged · March 2026 · convenience sample · findings are directional
+<details>
+<summary><strong>Technical Stack</strong></summary>
 
-| Metric | Result | Implication | 
-|---|---|---|
-| Players fulfilling ≥1 order | 8/9 (89%) | Core loop engagement validated — well above ~60% benchmark | 
-| Players opening shop | 8/9 (89%) | Energy gate working as designed | 
-| Players reaching Tier 2+ item | 3/9 (33%) | Critical onboarding gap — primary v2 hypothesis | 
-| Session length range | 25s – 899s | Bimodal — discovery threshold at ~3 minutes | 
-
-Key findings from the players' review: 
-1. the game lacks escalating challenge or a sense of meaningful progression beyond gold accumulation.
-2. the game needs onboarding tutorial and several first items to merge for new players.
-
-Primary hypothesis formed: Players who don't complete their first merge chain within 90 seconds disengage before reaching the commerce loop. The onboarding sequence should prioritise a guided first merge — not a free-play start.
-
-Next test: Guided vs. free-play onboarding — targeting lift from 33% to 50%+ on Tier 2+ progression rate.
-> → Full playtest brief with session-level data, funnel analysis, and A/B test design: [link coming soon]
->
-> → Full portfolio brief with market research, competitor analysis, and roadmap: [link coming soon]
-
----
-
-## 🛠️ Technical Stack
+<br>
 
 | Layer | Choice | Note |
 |---|---|---|
@@ -97,23 +112,47 @@ Next test: Guided vs. free-play onboarding — targeting lift from 33% to 50%+ o
 | Icons | Lucide React (CDN) | Lightweight icon set |
 | Fonts | Google Fonts — Nunito / Nunito Sans | Warm, rounded type to match the cosy shop aesthetic |
 | Deployment | GitHub Pages | Zero-config, shareable link |
-| AI-assisted development | Claude (Anthropic) + Gemini (Google) | Used for code generation, iteration, and debugging during prototyping |
+| AI-assisted development | Claude (Anthropic) | Used for code generation, iteration, and debugging during prototyping |
 
-The no-build architecture was a deliberate choice: it keeps the prototype lightweight and shareable without requiring a dev environment to run it — useful for cross-functional review with designers, PMs, or playtesters.
+The no-build architecture was a deliberate choice: lightweight, 
+shareable, and runnable without a dev environment — useful for 
+cross-functional review with designers, PMs, or playtesters.
 
----
-
-## 🔮 What I'd Build Next
-
-Given more time, the highest-priority additions would be:
-
-1. **Progression / Meta-loop** — a level or "day" structure to give the session loop a sense of advancement (e.g. shop upgrades, new item trees unlocked).
-2. **Configurable economy parameters** — an admin panel or URL params to tweak energy cost, refill price, and order rewards without code changes, enabling faster A/B testing iteration.
-3. **Analytics instrumentation** — lightweight event tracking (e.g. Amplitude) to capture merge depth, shop opens, and order fulfillment data.
-4. **Expanded item trees** — a third "Bakery" path and Tier 6 items to test whether added complexity improves retention or overwhelms new players.
-5. **Onboarding flow** — a 3-step tutorial overlay for first-time players to reduce early churn.
+</details>
 
 ---
+
+<details>
+<summary><strong>What's Next</strong></summary>
+
+<br>
+
+**Implement next** — signal is clear enough that testing would be 
+procrastinating behind data:
+- Tier 5 orders — closes the motivation dead end, creates a natural 
+  premium spend moment
+- Sell price calibration — increase by 25–50% to align Gold economy 
+  with energy refill cost
+- Delayed first energy gate — allow players to experience the commerce 
+  loop before hitting a monetisation moment
+- UI legibility — increase icon size and level number visibility 
+  within item tiles
+
+**Test next** — A/B experiments before committing to build:
+- Guided 3-step onboarding vs. free-play start — primary metric: 
+  % players reaching Tier 2+ in first session
+- Meta layer direction: pet evolution arc vs. story progression — 
+  primary metric: D7 and D30 retention
+
+**Build next** — pending A/B test results:
+- Meta layer v1 — pet evolution arc or story progression based on 
+  retention signal
+- Park building, async social layer (friend visits, gifting)
+- Egg gacha, seasonal LiveOps events
+
+→ Full roadmap and KPI framework in the **[Portfolio Brief](https://docs.google.com/document/d/1kdmXRH-fLKDLwsC0hXd7te4QVDEc1wFu/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)**
+
+</details>
 
 ---
 
@@ -123,8 +162,4 @@ Given more time, the highest-priority additions would be:
 
 ---
 
-> → Full playtest brief with session-level data, funnel analysis, and A/B test design: [link coming soon]
->
-> → Full portfolio brief with market research, competitor analysis, and roadmap: [link coming soon]
-
-*Built as a personal project to explore F2P merge mechanics and mobile UX design.*
+*Built by Diana Sinohardjo · diana.sinohardjo@gmail.com · [LinkedIn](https://www.linkedin.com/in/diana-sinohardjo/) · March 2026*
