@@ -20,7 +20,7 @@ a meta layer gives players a reason to return.
 
 ---
 
-## What This Is
+## What Is Mercantail
 
 Mercantail is a playable product hypothesis. 
 The merge-economy genre has seen sustained breakout growth — Gossip Harbor, Travel Town, and Merge Mansion have demonstrated that strong D30 retention is achievable in casual mobile when the session loop and meta layer work together. 
