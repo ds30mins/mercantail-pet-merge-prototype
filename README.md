@@ -24,7 +24,7 @@ a meta layer gives players a reason to return.
 
 Mercantail is a playable product hypothesis. 
 The merge-economy genre has seen sustained breakout growth — Gossip Harbor, Travel Town, and Merge Mansion have demonstrated that strong D30 retention is achievable in casual mobile when the session loop and meta layer work together. 
-The specific design question this prototype tests: does the merge-and-fulfill session loop hold attention on its own, before the meta layer is built?
+> *The specific design question this prototype tests: does the merge-and-fulfill session loop hold attention on its own, before the meta layer is built?*
 
 The prototype deliberately excludes pet evolution and park building. If players disengage during the core loop, adding a meta layer won't fix it. The playtest validates the session mechanic first.
 
