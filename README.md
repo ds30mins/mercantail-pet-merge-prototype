@@ -40,7 +40,7 @@ The prototype deliberately excludes pet evolution and park building. If players 
 | Session length is bimodal | Under 3 min or over 8 min — no middle ground. P08's two sessions ran 27 and 30 minutes, placing them in the top 1% of mobile session lengths (GameAnalytics 2025). | Onboarding is the lever. Test next. |
 | Tier 5 has no purpose | 6 of 10 sessions reached max tier — but there are no Tier 5 orders. Players who invested found no reward. | Unambiguous design gap. Implement next. |
 | Four players independently raised the same gap | No escalating challenge, no progression structure, no win condition. Convergent unprompted feedback across four players. | Which meta layer earns stronger retention? A/B test next. |
-| Energy gate reliably triggers shop | 9 of 10 sessions hit the energy gate and opened the shop — but always in a friction context, never aspirational. | Economy calibration and delayed first gate. Implement next. |
+| Energy gate reliably triggers shop | 9 of 10 sessions hit the energy gate and opened the shop — but almost always in a friction context, never aspirational. | Economy calibration and delayed first gate. Implement next. |
 | Tutorial gap | Three players independently requested guided onboarding. One session under 1 minute had zero merges completed. | Guided vs. free-play onboarding. A/B test next. |
 
 → Full methodology, session-level event log, complete findings, and 
