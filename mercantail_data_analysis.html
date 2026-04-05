@@ -81,7 +81,28 @@
   .charts-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   .divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
   .footer { font-size: 12px; color: var(--text3); text-align: center; padding-top: 24px; border-top: 1px solid var(--border); }
-  @media (max-width: 640px) { .charts-2col, .charts-3col { grid-template-columns: 1fr; } }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .compare-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .compare-card.s08 { border-top: 3px solid var(--purple-mid); }
+  .compare-card.s10 { border-top: 3px solid var(--teal-mid); }
+  .compare-session { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+  .compare-card.s08 .compare-session { color: var(--purple); }
+  .compare-card.s10 .compare-session { color: var(--teal); }
+  .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { font-size: 12px; color: var(--text2); }
+  .stat-value { font-size: 13px; font-weight: 600; color: var(--text); }
+  .delta-positive { color: var(--green); font-size: 11px; margin-left: 4px; }
+  .delta-negative { color: var(--red); font-size: 11px; margin-left: 4px; }
+  .liveops-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .liveops-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .liveops-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .liveops-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .liveops-body { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .liveops-metric { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .liveops-metric-label { font-size: 11px; color: var(--text3); }
+  .liveops-metric-value { font-size: 12px; font-weight: 500; color: var(--text); }
+  @media (max-width: 640px) { .charts-2col, .charts-3col, .compare-grid, .liveops-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -344,17 +365,10 @@
 <span class="kw">ORDER BY</span> session, timestamp;</pre>
     </div>
 
-    <div class="charts-2col">
-      <div class="chart-wrap">
-        <div class="chart-title">Gold economy over time — S08</div>
-        <div class="chart-sub">250 &rarr; ~2,000 gold &middot; 1,560 events &middot; 30.5 min</div>
-        <canvas id="goldS08Chart" height="180"></canvas>
-      </div>
-      <div class="chart-wrap">
-        <div class="chart-title">Gold economy over time — S10</div>
-        <div class="chart-sub">250 &rarr; 3,220 gold &middot; 1,601 events &middot; 27.5 min</div>
-        <canvas id="goldS10Chart" height="180"></canvas>
-      </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Gold economy over time — S08 vs S10</div>
+      <div class="chart-sub">Both sessions start at 250 gold &middot; S08 ends at ~2,018 (1,560 events) &middot; S10 ends at 3,220 (1,601 events) &middot; X axis = event number</div>
+      <canvas id="goldOverlayChart" height="180"></canvas>
     </div>
 
     <div class="insight insight-economy">
@@ -486,6 +500,146 @@
     </div>
   </div>
 
+  <hr class="divider">
+
+  <!-- SECTION 7: MERGE FUNNEL — TIER EFFICIENCY -->
+  <div class="section">
+    <div class="section-header">
+      <h2>7. Merge funnel — tier efficiency vs baseline</h2>
+      <span class="section-tag tag-funnel">Funnel</span>
+    </div>
+    <p class="section-desc">Rich Data sessions only (S08 + S10). Measures actual items produced at each tier against the theoretical 2:1 baseline — since two items of tier N must be merged to produce one item of tier N+1, a perfectly efficient player would lose exactly 50% of items at each stage. T1 counts are items spawned; T2–T5 counts are items produced via merge.</p>
+
+    <div class="result-label">Tier funnel — S08 + S10 combined (Rich Data only)</div>
+    <table>
+      <thead>
+        <tr><th>Tier</th><th>Actual items</th><th>S08</th><th>S10</th><th>Expected (2:1 baseline)</th><th>Efficiency vs baseline</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>T1</strong> Spawned</td><td>1,424</td><td>705</td><td>719</td><td>—</td><td>—</td></tr>
+        <tr><td><strong>T2</strong> First merge</td><td>680</td><td>340</td><td>340</td><td>712</td><td><span class="badge badge-green">96% ✓</span></td></tr>
+        <tr><td><strong>T3</strong></td><td>303</td><td>148</td><td>155</td><td>340</td><td><span class="badge badge-green">89% ✓</span></td></tr>
+        <tr><td><strong>T4</strong></td><td>118</td><td>58</td><td>60</td><td>151</td><td><span class="badge badge-amber">78% ↓</span></td></tr>
+        <tr class="churn-row"><td><strong>T5</strong> Max tier</td><td>21</td><td>14</td><td>7</td><td>59</td><td><span class="badge badge-red">36% ✗</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="insight insight-funnel">
+      <strong>Funnel finding: T1→T3 is strong. T4→T5 collapses — and there are no T5 orders.</strong>
+      <p>Players merge efficiently at T1–T3 (96% and 89% of theoretical baseline). The drop begins at T4 (78%) and collapses at T5: only 21 T5 items produced against an expected 59 — 36% efficiency. This is rational player behavior, not random attrition. With no T5 orders to justify the ~50-spawn investment required per T5 item, players consume T4 items for lower-tier orders instead. P08 flagged this directly and independently: "Why no Lv5 order? What's the purpose of Lv5 item?"</p>
+      <div class="rec"><span>Next action:</span> Introduce at least one rotating T5 order with a Gold reward (~150–200 Gold) that justifies the merge chain cost. Closes the motivation dead end and creates a natural premium spend moment.</div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Merge funnel — actual vs expected (2:1 baseline)</div>
+      <div class="chart-sub">S08 + S10 combined &middot; Rich Data only &middot; T5 efficiency at 36% of theoretical baseline</div>
+      <canvas id="mergeFunnelChart" height="160"></canvas>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 8: LONGITUDINAL — S08 vs S10 -->
+  <div class="section">
+    <div class="section-header">
+      <h2>8. P08 longitudinal analysis — S08 &rarr; S10</h2>
+      <span class="section-tag tag-monetisation">Longitudinal</span>
+    </div>
+    <p class="section-desc">P08 completed two Rich Data sessions — the only player with two full embedded logger sessions. No product changes were made between S08 and S10. This is a player learning curve analysis: how did engagement, efficiency, and economy behavior change across sessions?</p>
+
+    <div class="compare-grid">
+      <div class="compare-card s08">
+        <div class="compare-session">S08 — first session</div>
+        <div class="stat-row"><span class="stat-label">Duration</span><span class="stat-value">30.5 min</span></div>
+        <div class="stat-row"><span class="stat-label">Orders fulfilled</span><span class="stat-value">128</span></div>
+        <div class="stat-row"><span class="stat-label">Orders / min</span><span class="stat-value">4.20</span></div>
+        <div class="stat-row"><span class="stat-label">Energy refills</span><span class="stat-value">69</span></div>
+        <div class="stat-row"><span class="stat-label">Orders per refill</span><span class="stat-value">1.86</span></div>
+        <div class="stat-row"><span class="stat-label">Merge ratio</span><span class="stat-value">0.79</span></div>
+        <div class="stat-row"><span class="stat-label">Events / min</span><span class="stat-value">51.2</span></div>
+        <div class="stat-row"><span class="stat-label">T5 items produced</span><span class="stat-value">14</span></div>
+        <div class="stat-row"><span class="stat-label">Gold end</span><span class="stat-value">2,018</span></div>
+      </div>
+      <div class="compare-card s10">
+        <div class="compare-session">S10 — second session</div>
+        <div class="stat-row"><span class="stat-label">Duration</span><span class="stat-value">27.5 min <span class="delta-negative">−3 min</span></span></div>
+        <div class="stat-row"><span class="stat-label">Orders fulfilled</span><span class="stat-value">144 <span class="delta-positive">+12.5%</span></span></div>
+        <div class="stat-row"><span class="stat-label">Orders / min</span><span class="stat-value">5.24 <span class="delta-positive">+24.8%</span></span></div>
+        <div class="stat-row"><span class="stat-label">Energy refills</span><span class="stat-value">70 <span class="delta-negative">+1</span></span></div>
+        <div class="stat-row"><span class="stat-label">Orders per refill</span><span class="stat-value">2.06 <span class="delta-positive">+10.7%</span></span></div>
+        <div class="stat-row"><span class="stat-label">Merge ratio</span><span class="stat-value">0.78 <span class="delta-negative">−0.01</span></span></div>
+        <div class="stat-row"><span class="stat-label">Events / min</span><span class="stat-value">58.2 <span class="delta-positive">+13.7%</span></span></div>
+        <div class="stat-row"><span class="stat-label">T5 items produced</span><span class="stat-value">7 <span class="delta-negative">−50%</span></span></div>
+        <div class="stat-row"><span class="stat-label">Gold end</span><span class="stat-value">3,220 <span class="delta-positive">+59.6%</span></span></div>
+      </div>
+    </div>
+
+    <div class="insight insight-economy">
+      <strong>Longitudinal finding: P08 became significantly more efficient in session 2</strong>
+      <p>Despite playing 3 minutes less in S10, P08 fulfilled 16 more orders — a 24.8% improvement in orders per minute. Event cadence increased 13.7%, suggesting faster decision-making with board familiarity. T5 item production dropped 50% (14→7): P08 learned to consume items at lower tiers for faster order turnover rather than investing in the T5 merge chain. Rational behavior when there are no T5 orders to justify the investment — confirmed by the funnel data above.</p>
+      <div class="rec"><span>Pre/post test design (not yet run):</span> Implement T5 orders → ask P08 to play S11. Hypothesis: T5 production recovers toward S08 levels (target: 10+ items) because there is now a reward that justifies the merge investment.</div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">S08 vs S10 — throughput comparison</div>
+      <div class="chart-sub">S10 shows higher throughput despite shorter session — player learning curve visible</div>
+      <canvas id="compareChart" height="140"></canvas>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 9: LIVEOPS RECOMMENDATIONS -->
+  <div class="section">
+    <div class="section-header">
+      <h2>9. LiveOps recommendations — data-grounded</h2>
+      <span class="section-tag tag-economy">Economy</span>
+    </div>
+    <p class="section-desc">Each recommendation traces directly to a finding in the event log. Framing: data signal → LiveOps event design → success metric.</p>
+
+    <div class="liveops-grid">
+      <div class="liveops-card">
+        <div class="liveops-type" style="color:var(--purple)">Economy event</div>
+        <div class="liveops-title">Tier 5 Double Gold Week</div>
+        <div class="liveops-body">For one week, all Tier 5 orders pay 2× Gold reward. Directly addresses the T5 dead-end: players who invest in the ~50-spawn merge chain get a meaningful return.</div>
+        <div class="liveops-metric">
+          <div class="liveops-metric-label">Data signal</div>
+          <div class="liveops-metric-value">T5 efficiency at 36% of baseline — players skip T5 merges. 6/10 sessions reached T5 with no purpose.</div>
+        </div>
+        <div class="liveops-metric">
+          <div class="liveops-metric-label">Measure success by</div>
+          <div class="liveops-metric-value">T5 merge count per session (baseline: 10.5 avg). Target: +40% during event.</div>
+        </div>
+      </div>
+      <div class="liveops-card">
+        <div class="liveops-type" style="color:var(--teal)">Engagement event</div>
+        <div class="liveops-title">Energy Surge — 10 min unlimited</div>
+        <div class="liveops-body">Once per session, one rewarded ad unlocks 10 minutes of unlimited energy. Non-IAP revenue layer for non-spenders. Keeps high-engagement players in session without undermining the soft paywall.</div>
+        <div class="liveops-metric">
+          <div class="liveops-metric-label">Data signal</div>
+          <div class="liveops-metric-value">P08: 69–70 energy refills per session. P05: "bisa ada opsi buat langsung full." 9/10 players hit the gate.</div>
+        </div>
+        <div class="liveops-metric">
+          <div class="liveops-metric-label">Measure success by</div>
+          <div class="liveops-metric-value">Session length delta for players who use the surge vs those who don't. Target: +15% session extension.</div>
+        </div>
+      </div>
+      <div class="liveops-card">
+        <div class="liveops-type" style="color:var(--amber)">Seasonal event</div>
+        <div class="liveops-title">Spring Market — limited decor</div>
+        <div class="liveops-body">6-week seasonal event: spring-themed limited orders, exclusive park decor items, community milestone (total orders fulfilled unlocks a bonus item for all players).</div>
+        <div class="liveops-metric">
+          <div class="liveops-metric-label">Data signal</div>
+          <div class="liveops-metric-value">4/10 players independently flagged lack of goals beyond Gold accumulation. Seasonal events give a time-bounded goal that creates urgency.</div>
+        </div>
+        <div class="liveops-metric">
+          <div class="liveops-metric-label">Measure success by</div>
+          <div class="liveops-metric-value">D7 retention during event vs non-event cohort. Season pass conversion rate ($4.99).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <div class="footer">
     Mercantail Playtest Data Analysis &middot; SQL queries run in DB Browser for SQLite &middot; Data: mercantail.db &middot; [Your Name] &middot; March 2026
@@ -511,10 +665,19 @@ new Chart(document.getElementById('sessionLengthChart'), {
       data: [0.82, 2.08, 2.53, 3.23, 8.57, 9.43, 14.98, 14.78, 27.5, 30.5],
       backgroundColor: [red, amberLight, amberLight, amberLight, tealMid, tealMid, tealMid, tealMid, purple, purple],
       borderRadius: 4, borderSkipped: false,
+    }, {
+      label: 'Industry median',
+      data: [3.3, 3.3, 3.3, 3.3, 3.3, 3.3, 3.3, 3.3, 3.3, 3.3],
+      type: 'line',
+      borderColor: amber, borderWidth: 2, borderDash: [6, 4],
+      pointRadius: 0, fill: false, tension: 0,
     }]
   },
   options: {
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' min' } } },
+    plugins: {
+      legend: { display: true, position: 'bottom' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label === 'Industry median' ? '3.3 min median' : ctx.parsed.y + ' min' } }
+    },
     scales: {
       x: { grid: { display: false } },
       y: { title: { display: true, text: 'minutes' }, grid: { color: border } }
@@ -593,40 +756,85 @@ new Chart(document.getElementById('funnelChart'), {
 const s08GoldData = [[21.0, 250], [33.6, 277], [42.6, 277], [51.8, 277], [57.6, 277], [61.5, 277], [69.1, 495], [72.0, 495], [80.3, 395], [89.2, 395], [95.4, 395], [100.2, 395], [105.8, 500], [111.5, 459], [117.4, 459], [123.4, 459], [127.9, 459], [135.1, 459], [141.1, 359], [147.8, 414], [156.5, 414], [164.1, 314], [173.5, 314], [183.1, 314], [190.0, 314], [199.1, 214], [208.1, 372], [215.3, 474], [219.2, 474], [223.3, 374], [228.7, 374], [232.6, 374], [241.0, 425], [248.6, 457], [253.4, 357], [261.5, 357], [267.4, 438], [272.9, 540], [278.3, 656], [284.2, 556], [287.8, 556], [295.3, 556], [299.5, 638], [302.5, 538], [308.0, 538], [313.4, 786], [317.1, 786], [324.5, 686], [329.9, 686], [336.9, 686], [343.8, 773], [346.6, 673], [355.2, 673], [361.0, 978], [365.3, 1009], [370.6, 1009], [375.7, 1117], [378.6, 1017], [381.0, 1017], [384.9, 1017], [389.3, 1117], [394.6, 1071], [398.6, 1128], [400.9, 1128], [403.8, 1028], [406.1, 1028], [412.0, 1081], [418.4, 1162], [425.7, 1269], [428.4, 1169], [435.2, 1251], [437.7, 1251], [442.1, 1303], [450.4, 1411], [456.0, 1311], [460.3, 1311], [467.6, 1413], [470.1, 1313], [476.3, 1313], [479.4, 1313], [485.2, 1313], [492.5, 1313], [498.5, 1213], [505.8, 1313], [511.8, 1393], [516.8, 1393], [526.5, 1393], [532.2, 1494], [535.6, 1394], [540.6, 1394], [547.0, 1469], [551.4, 1469], [558.2, 1369], [563.6, 1472], [570.5, 1551], [573.1, 1551], [577.5, 1551], [581.1, 1451], [585.1, 1451], [587.7, 1451], [592.3, 1351], [596.8, 1351], [603.0, 1351], [609.9, 1351], [616.1, 1251], [620.0, 1251], [626.3, 1409], [631.8, 1488], [637.6, 1565], [642.1, 1465], [650.8, 1569], [656.0, 1569], [661.0, 1569], [666.6, 1569], [671.0, 1469], [676.6, 1469], [682.3, 1469], [691.2, 1469], [699.8, 1369], [703.7, 1369], [709.1, 1369], [713.7, 1369], [720.8, 1471], [723.8, 1371], [730.7, 1371], [738.9, 1475], [741.3, 1375], [747.8, 1434], [752.2, 1434], [757.5, 1434], [762.0, 1434], [768.4, 1334], [775.4, 1334], [781.4, 1440], [788.1, 1440], [790.4, 1440], [796.4, 1340], [799.1, 1340], [804.6, 1340], [811.3, 1418], [817.2, 1421], [823.0, 1475], [828.4, 1475], [836.7, 1475], [842.2, 1475], [847.8, 1477], [850.3, 1477], [856.4, 1559], [861.1, 1587], [865.1, 1487], [869.0, 1487], [875.0, 1538], [879.8, 1590], [884.9, 1697], [888.1, 1597], [892.4, 1597], [898.1, 1597], [903.5, 1597], [909.1, 1497], [911.0, 1497], [914.3, 1497], [920.3, 1574], [927.1, 1733], [934.6, 1733], [936.8, 1633], [938.0, 1633], [942.3, 1533], [948.4, 1670], [956.1, 1670], [957.1, 1670], [961.2, 1670], [969.3, 1751], [972.8, 1651], [974.0, 1651], [979.5, 1651], [988.1, 1651], [991.4, 1551], [996.3, 1608], [1004.4, 1688], [1009.4, 1688], [1012.8, 1588], [1021.5, 1588], [1026.3, 1588], [1039.6, 1588], [1042.9, 1488], [1051.9, 1566], [1055.9, 1566], [1060.5, 1566], [1068.6, 1600], [1073.2, 1500], [1080.8, 1500], [1093.8, 1603], [1097.9, 1603], [1108.0, 1770], [1111.6, 1670], [1113.1, 1670], [1118.0, 1670], [1126.0, 1670], [1129.2, 1570], [1138.2, 1570], [1144.2, 1570], [1147.7, 1596], [1156.2, 1648], [1158.8, 1548], [1165.0, 1652], [1170.9, 1652], [1179.2, 1760], [1182.7, 1660], [1185.7, 1660], [1192.9, 1744], [1204.6, 1846], [1217.4, 2003], [1221.3, 1903], [1222.8, 1903], [1228.8, 1953], [1234.8, 2144], [1243.2, 2306], [1250.8, 2206], [1252.7, 2206], [1253.9, 2206], [1256.6, 2106], [1262.8, 2106], [1273.9, 2106], [1280.3, 2106], [1281.9, 2106], [1284.2, 2006], [1289.6, 2006], [1296.5, 2006], [1320.4, 2088], [1322.4, 1988], [1324.4, 1988], [1329.2, 2097], [1338.2, 2097], [1345.2, 2201], [1348.0, 2101], [1349.8, 2101], [1353.7, 2134], [1361.9, 2134], [1373.5, 2134], [1376.6, 2034], [1377.9, 2034], [1383.0, 2034], [1387.9, 2034], [1396.7, 1934], [1398.6, 1934], [1403.5, 1934], [1411.5, 2040], [1424.0, 1940], [1428.4, 1940], [1433.6, 1940], [1450.4, 1940], [1458.7, 1940], [1466.4, 1840], [1468.9, 1840], [1474.2, 1840], [1481.6, 1975], [1488.7, 1875], [1491.0, 1875], [1498.1, 1958], [1505.9, 1958], [1508.5, 1858], [1513.2, 1858], [1518.1, 1858], [1526.0, 1934], [1528.7, 1834], [1536.5, 1924], [1541.1, 1924], [1546.7, 1975], [1554.0, 1975], [1559.3, 1875], [1566.7, 1875], [1572.7, 1979], [1578.9, 1979], [1589.2, 2158], [1602.5, 2058], [1605.3, 2058], [1609.9, 2058], [1618.3, 2058], [1626.8, 2137], [1629.8, 2037], [1631.8, 2037], [1640.7, 2037], [1655.8, 2197], [1658.3, 2097], [1660.1, 2097], [1668.3, 2097], [1671.3, 2097], [1676.6, 1997], [1685.9, 2099], [1692.1, 2133], [1694.7, 2133], [1705.2, 2184], [1715.6, 2116], [1717.5, 2116], [1725.4, 2116], [1735.0, 2116], [1737.4, 2016], [1740.4, 2016], [1748.1, 2214], [1755.1, 2214], [1757.4, 2114], [1766.3, 2114], [1769.8, 2114], [1775.0, 2114], [1779.1, 2114], [1788.0, 2114], [1791.9, 2014], [1793.4, 2014], [1801.0, 2014], [1806.6, 2014], [1809.5, 1914], [1815.6, 1914]];
 const s10GoldData = [[14.1, 250], [16.4, 250], [17.2, 250], [18.0, 250], [21.6, 250], [26.7, 250], [31.8, 250], [39.7, 250], [41.5, 150], [42.3, 150], [44.6, 50], [47.9, 84], [56.2, 84], [61.8, 84], [67.6, 289], [68.5, 289], [78.1, 267], [82.3, 267], [84.6, 267], [91.3, 167], [98.4, 306], [108.6, 306], [113.3, 306], [116.6, 306], [123.2, 306], [128.5, 306], [134.8, 206], [136.4, 206], [140.1, 206], [146.3, 206], [153.8, 310], [159.4, 210], [161.0, 210], [163.9, 110], [170.9, 164], [178.6, 290], [182.5, 452], [183.4, 452], [186.0, 352], [193.5, 352], [196.5, 352], [200.3, 352], [203.1, 252], [206.0, 252], [210.8, 252], [216.6, 355], [222.2, 355], [231.5, 435], [235.1, 335], [236.3, 335], [241.2, 335], [248.5, 414], [257.8, 573], [264.2, 524], [265.8, 524], [267.8, 524], [274.0, 482], [280.8, 564], [292.6, 680], [296.3, 680], [299.2, 580], [302.8, 607], [306.7, 660], [309.7, 560], [315.8, 560], [323.4, 560], [328.9, 757], [333.4, 757], [336.0, 757], [340.8, 657], [351.6, 736], [362.3, 770], [363.5, 770], [367.3, 770], [373.8, 878], [379.2, 778], [380.7, 778], [382.9, 778], [390.7, 778], [404.0, 678], [406.6, 678], [410.6, 678], [417.0, 678], [424.6, 578], [426.2, 578], [435.4, 578], [445.4, 678], [447.4, 678], [448.8, 578], [452.3, 578], [456.8, 578], [471.9, 687], [473.2, 687], [475.6, 587], [476.6, 587], [481.3, 642], [487.8, 642], [501.4, 542], [503.4, 542], [515.3, 542], [517.5, 442], [525.1, 442], [531.2, 442], [537.8, 442], [543.5, 551], [547.2, 451], [550.9, 451], [558.4, 451], [563.0, 451], [570.0, 451], [573.3, 351], [583.8, 451], [589.5, 451], [596.6, 351], [602.0, 432], [609.4, 432], [614.1, 432], [622.1, 432], [625.8, 332], [632.3, 332], [640.2, 433], [643.9, 433], [646.4, 333], [653.2, 333], [659.7, 460], [665.8, 788], [667.5, 788], [670.4, 688], [678.8, 688], [681.5, 688], [683.8, 688], [690.8, 688], [697.6, 588], [700.2, 588], [702.7, 488], [710.8, 488], [718.8, 787], [726.1, 922], [729.3, 922], [730.7, 922], [736.5, 822], [741.2, 822], [749.4, 898], [750.7, 898], [753.5, 798], [760.7, 798], [768.8, 798], [775.5, 798], [780.1, 906], [784.2, 806], [789.6, 806], [793.8, 806], [796.9, 806], [802.4, 947], [806.6, 880], [815.1, 906], [819.2, 1011], [824.2, 1041], [831.2, 1041], [834.8, 941], [839.9, 1052], [843.4, 1083], [847.5, 983], [853.6, 983], [856.5, 983], [862.5, 1038], [866.7, 938], [872.4, 1043], [875.7, 1043], [880.8, 1043], [886.1, 1146], [892.9, 1223], [896.2, 1123], [897.6, 1123], [903.4, 1123], [909.7, 1123], [913.3, 1023], [914.7, 1023], [923.2, 1123], [929.6, 1123], [934.4, 1023], [938.6, 1023], [945.6, 1023], [948.5, 1023], [952.4, 1130], [960.7, 1030], [963.9, 1030], [968.0, 1030], [976.8, 1081], [982.4, 1190], [992.9, 1320], [999.2, 1220], [1000.5, 1220], [1002.4, 1220], [1004.4, 1120], [1011.0, 1195], [1015.2, 1248], [1021.7, 1248], [1023.8, 1148], [1028.4, 1148], [1036.5, 1200], [1045.0, 1200], [1052.8, 1304], [1060.4, 1204], [1070.3, 1473], [1075.2, 1473], [1084.8, 1473], [1090.9, 1473], [1095.3, 1373], [1102.3, 1474], [1108.2, 1664], [1114.7, 1697], [1118.5, 1597], [1123.7, 1726], [1129.6, 1726], [1133.1, 1726], [1140.3, 1804], [1146.1, 1704], [1157.4, 1809], [1159.9, 1809], [1164.4, 1809], [1168.9, 1709], [1173.4, 1709], [1178.8, 1709], [1182.9, 1709], [1185.9, 1609], [1192.6, 1685], [1196.2, 1685], [1202.7, 1685], [1206.6, 1585], [1212.5, 1740], [1219.0, 1740], [1220.9, 1740], [1223.4, 1640], [1225.1, 1640], [1230.8, 1640], [1238.5, 1718], [1242.3, 1718], [1245.2, 1618], [1247.8, 1618], [1252.9, 1618], [1259.4, 1669], [1266.4, 1695], [1269.3, 1595], [1274.1, 1595], [1282.0, 1671], [1288.7, 1774], [1293.3, 1855], [1296.6, 1755], [1299.3, 1755], [1305.9, 1980], [1312.3, 2116], [1316.2, 2016], [1319.5, 2016], [1326.7, 2096], [1329.1, 2096], [1336.3, 2096], [1340.2, 1996], [1346.5, 1996], [1349.6, 1996], [1355.3, 2128], [1358.4, 2028], [1360.1, 2028], [1364.1, 2028], [1371.6, 2183], [1374.2, 2083], [1379.6, 2083], [1386.0, 2083], [1394.5, 2221], [1400.5, 2465], [1402.2, 2365], [1403.7, 2365], [1406.8, 2365], [1412.8, 2445], [1417.4, 2524], [1428.2, 2524], [1429.8, 2424], [1431.1, 2424], [1435.8, 2480], [1440.8, 2599], [1447.1, 2499], [1454.0, 2499], [1459.8, 2499], [1466.4, 2639], [1470.5, 2539], [1475.0, 2539], [1481.4, 2539], [1490.4, 2644], [1493.0, 2644], [1495.8, 2544], [1502.1, 2544], [1503.2, 2544], [1505.8, 2444], [1511.5, 2529], [1517.6, 2635], [1520.5, 2635], [1523.1, 2635], [1527.4, 2535], [1533.8, 2719], [1540.1, 2798], [1543.3, 2832], [1544.6, 2832], [1546.9, 2732], [1549.9, 2732], [1555.7, 2732], [1558.8, 2732], [1561.3, 2632], [1566.2, 2713], [1575.5, 2738], [1583.2, 2818], [1587.8, 2930], [1591.0, 2830], [1593.1, 2830], [1599.7, 2830], [1608.3, 2933], [1613.2, 2933], [1617.4, 2833], [1621.1, 2833], [1626.2, 2833], [1633.3, 3162], [1647.3, 3220]];
 
-new Chart(document.getElementById('goldS08Chart'), {
+// Sample every Nth point and map by event number (index) instead of timestamp
+function sampleByIndex(arr, step) {
+  return arr
+    .filter((_, i) => i % step === 0 || i === arr.length - 1)
+    .map((p, i, filtered) => {
+      const origIndex = arr.indexOf(p);
+      return { x: origIndex, y: p[1] };
+    });
+}
+
+new Chart(document.getElementById('goldOverlayChart'), {
   type: 'line',
   data: {
-    datasets: [{
-      label: 'S08 gold',
-      data: s08GoldData.map(p => ({x: p[0], y: p[1]})),
-      borderColor: purple, backgroundColor: purpleLight,
-      tension: 0.2, fill: false, pointRadius: 0, borderWidth: 1.5,
-    }]
+    datasets: [
+      {
+        label: 'S08 (30.5 min)',
+        data: s08GoldData.filter((_, i) => i % 9 === 0 || i === s08GoldData.length - 1).map((p, _, arr) => ({ x: s08GoldData.indexOf(p), y: p[1] })),
+        borderColor: purple, backgroundColor: 'transparent',
+        tension: 0.4, fill: false, pointRadius: 0, borderWidth: 2,
+      },
+      {
+        label: 'S10 (27.5 min)',
+        data: s10GoldData.filter((_, i) => i % 9 === 0 || i === s10GoldData.length - 1).map((p, _, arr) => ({ x: s10GoldData.indexOf(p), y: p[1] })),
+        borderColor: teal, backgroundColor: 'transparent',
+        tension: 0.4, fill: false, pointRadius: 0, borderWidth: 2,
+      }
+    ]
   },
   options: {
-    plugins: { legend: { display: false } },
+    plugins: { legend: { position: 'bottom' } },
     scales: {
-      x: { type: 'linear', title: { display: true, text: 'timestamp (s)' }, grid: { color: border } },
-      y: { title: { display: true, text: 'gold balance' }, grid: { color: border } }
+      x: { type: 'linear', min: 0, max: 1650, title: { display: true, text: 'event number' }, grid: { color: border } },
+      y: { min: 0, max: 3500, title: { display: true, text: 'gold balance' }, grid: { color: border } }
     }
   }
 });
 
-new Chart(document.getElementById('goldS10Chart'), {
-  type: 'line',
+// Merge funnel
+new Chart(document.getElementById('mergeFunnelChart'), {
+  type: 'bar',
   data: {
-    datasets: [{
-      label: 'S10 gold',
-      data: s10GoldData.map(p => ({x: p[0], y: p[1]})),
-      borderColor: teal, backgroundColor: tealLight,
-      tension: 0.2, fill: false, pointRadius: 0, borderWidth: 1.5,
-    }]
+    labels: ['T1 spawned', 'T2 merged', 'T3 merged', 'T4 merged', 'T5 merged'],
+    datasets: [
+      {
+        label: 'Actual',
+        data: [1424, 680, 303, 118, 21],
+        backgroundColor: purple, borderRadius: 4,
+      },
+      {
+        label: 'Expected (2:1)',
+        data: [1424, 712, 340, 151, 59],
+        backgroundColor: purpleLight, borderColor: purple, borderWidth: 1, borderRadius: 4,
+      }
+    ]
   },
   options: {
-    plugins: { legend: { display: false } },
+    plugins: { legend: { position: 'bottom' } },
     scales: {
-      x: { type: 'linear', title: { display: true, text: 'timestamp (s)' }, grid: { color: border } },
-      y: { title: { display: true, text: 'gold balance' }, grid: { color: border } }
+      x: { grid: { display: false } },
+      y: { title: { display: true, text: 'item count' }, grid: { color: border } }
+    }
+  }
+});
+
+// S08 vs S10 throughput comparison
+new Chart(document.getElementById('compareChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Orders / min', 'Orders / refill', 'Events / min'],
+    datasets: [
+      { label: 'S08', data: [4.20, 1.86, 51.2], backgroundColor: purple, borderRadius: 4 },
+      { label: 'S10', data: [5.24, 2.06, 58.2], backgroundColor: teal, borderRadius: 4 }
+    ]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: border } }
     }
   }
 });
