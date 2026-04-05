@@ -30,6 +30,38 @@ The prototype deliberately excludes pet evolution and park building. If players 
 
 ---
 
+
+## Core Loop
+
+**Session loop:** Spawn item → Merge → Fulfill order → Earn Gold → 
+Manage energy → Repeat
+
+**Meta loop (next build phase):** Fulfill orders → Earn meta rewards → 
+Pet evolves *or* story progresses (A/B test) → Deepens identity 
+investment → Drives D7/D30 return
+
+The tension in each session: do you evolve an item for a high-value 
+order, or sell lower-tier items to refill energy now?
+
+
+---
+
+
+## What's Built in the Prototype
+
+| Feature | Description |
+|---|---|
+| Merge board | 5×6 grid (30 cells). Tap-to-select, tap-to-merge. No drag-and-drop — designed for one-handed mobile play. |
+| 4 item evolution trees | Greens, Sprouts, Seafood, Meats — each with 5 tiers. Players can inspect full evolution path via in-game modal. |
+| Order system | 3 rotating customer orders. Specifies required item and Gold reward. Fulfilled orders refresh automatically. |
+| Energy system | Each spawn costs 1 Energy. When energy hits zero, player is gated to the Shop — the natural soft-paywall moment. |
+| Gold economy | Earned by fulfilling orders. Spent to refill energy (100 Gold → +10 Energy). |
+| Shop | Triggered at energy = 0. Energy refill and Gold purchase simulation. Pearl (hard currency) IAP layer is designed but not yet implemented. |
+| In-game event logger | Embedded dev logger used in S08 and S10 (P08). Captures 8 event types — item spawns, merges, orders, shop opens, energy refills — with before/after state for tier, energy, and gold at every event. Output to CSV. Primary data source for SQL analysis. |
+| Mobile-first UX | Max-width 430px, locked orientation, safe-area insets, toast notifications, particle animations on merge/order events. |
+
+---
+
 ## Playtest Results
 
 **n=10 sessions · 5,393 events · ~114 minutes total play · March 2026**
@@ -48,37 +80,47 @@ A/B test design in the **[Playtest Brief](https://docs.google.com/document/d/1Xz
 
 ---
 
-## Core Loop
+## 📈 Data Analysis
 
-**Session loop:** Spawn item → Merge → Fulfill order → Earn Gold → 
-Manage energy → Repeat
+Playtest data from 10 sessions and 5,393 logged events was imported into SQLite 
+and analysed using SQL queries covering session engagement, event breakdown, 
+player funnel, gold economy, energy patterns, and session quality classification.
 
-**Meta loop (next build phase):** Fulfill orders → Earn meta rewards → 
-Pet evolves *or* story progresses (A/B test) → Deepens identity 
-investment → Drives D7/D30 return
+**[→ View the full SQL analysis](https://ds30mins.github.io/mercantail-pet-merge-prototype/mercantail_data_analysis.html)**
 
-The tension in each session: do you evolve an item for a high-value 
-order, or sell lower-tier items to refill energy now?
+### Data Collection
 
----
+Two logging methods were used across sessions:
 
-<details>
-<summary><strong>What's Built in the Prototype</strong></summary>
+| Method | Sessions | What it captures |
+|---|---|---|
+| Manual event logging | S01–S07, S09 | Spawn, merge, order, shop, energy events |
+| Embedded in-game logger | S08, S10 (P08) | All of the above + item paths, decimal timestamps, full economy state (gold & energy before/after every event) — output to CSV |
 
-<br>
+### SQL Queries Written
 
-| Feature | Description |
+| Query | What it answers |
 |---|---|
-| Merge board | 5×6 grid (30 cells). Tap-to-select, tap-to-merge. No drag-and-drop — designed for one-handed mobile play. |
-| 4 item evolution trees | Greens, Sprouts, Seafood, Meats — each with 5 tiers. Players can inspect full evolution path via in-game modal. |
-| Order system | 3 rotating customer orders. Specifies required item and Gold reward. Fulfilled orders refresh automatically. |
-| Energy system | Each spawn costs 1 Energy. When energy hits zero, player is gated to the Shop — the natural soft-paywall moment. |
-| Gold economy | Earned by fulfilling orders. Spent to refill energy (100 Gold → +10 Energy). |
-| Shop | Triggered at energy = 0. Energy refill and Gold purchase simulation. Pearl (hard currency) IAP layer is designed but not yet implemented. |
-| In-game event logger | Embedded dev logger used in P08 sessions — capturing item paths, decimal timestamps, and full economy state automatically. |
-| Mobile-first UX | Max-width 430px, locked orientation, safe-area insets, toast notifications, particle animations on merge/order events. |
+| Session summary | Duration, orders, merge ratio per session |
+| Event breakdown | COUNT(CASE WHEN) pivot of all event types by session |
+| Player funnel | UNION ALL across 7 funnel stages from raw event log |
+| Gold economy | Time-series gold tracking for P08 (Rich Data only) |
+| Energy pattern | Energy drain & refill cycle across P08's two sessions |
+| Session quality | JOIN between summary + events tables with CASE WHEN classification |
 
-</details>
+### Key Findings
+
+| Finding | Signal | Disposition |
+|---|---|---|
+| 100% order fulfillment | Core loop is intrinsically motivating | ✅ Green light for meta layer |
+| Tier 5 has no purpose | Players who reach max tier find no reward | 🔨 Implement next |
+| Bimodal session distribution | Under 3 min or over 8 min — no middle ground | 🧪 Test (onboarding) |
+| Energy gate is friction-only | Shop always reactive, never aspirational | 🔨 Implement next |
+| 4 players independently flagged missing progression | Strongest convergent signal in dataset | 🧪 Test (meta layer) |
+| 3 players independently requested tutorial | Confirmed by S03 early churn data | 🧪 Test (onboarding) |
+
+📄 **[Full playtest brief →](your-brief-link-here)**  
+🗃️ **[Raw event log (CSV) →](your-data-link-here)**
 
 ---
 
