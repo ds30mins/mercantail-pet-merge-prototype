@@ -4,9 +4,15 @@ A mobile-first Merge-2 prototype exploring whether a commerce loop —
 order targets, energy pacing, reward timing — can hold attention before 
 a meta layer gives players a reason to return.
 
-🕹️ **[Play the prototype →](https://ds30mins.github.io/mercantail-pet-merge-prototype/)**
+## 🔗 Portfolio Artifacts
 
-📄 **[Portfolio Brief →](https://docs.google.com/document/d/1kdmXRH-fLKDLwsC0hXd7te4QVDEc1wFu/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)** · **[Playtest Brief →](https://docs.google.com/document/d/1XzXsajKMO2cU8iQv9WPIos2yKFVTmwE4/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)**
+| Artifact | What it is |
+|---|---|
+| [▶ Play the prototype](https://ds30mins.github.io/mercantail-pet-merge-prototype/) | Playable in browser — no install needed |
+| [📊 SQL data analysis](https://ds30mins.github.io/mercantail-pet-merge-prototype/mercantail_data_analysis.html) | 6 SQL queries, 5,393 events, interactive charts |
+| [📄 Playtest brief](https://github.com/ds30mins/mercantail-pet-merge-prototype/blob/main/Mercantail_Playtest_Brief_ProductAnalyst_version.pdf) | n=10 sessions, 7 findings, A/B test designs |
+| [📋 Portfolio brief](https://github.com/ds30mins/mercantail-pet-merge-prototype/blob/main/Mercantail_Portfolio.pdf) | Market research, concept, prototype scope, roadmap |
+
 
 ---
 
