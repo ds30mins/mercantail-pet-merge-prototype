@@ -125,8 +125,8 @@ Two logging methods were used across sessions:
 | 4 players independently flagged missing progression | Strongest convergent signal in dataset | 🧪 Test (meta layer) |
 | 3 players independently requested tutorial | Confirmed by S03 early churn data | 🧪 Test (onboarding) |
 
-📄 **[Full playtest brief →](your-brief-link-here)**  
-🗃️ **[Raw event log (CSV) →](your-data-link-here)**
+📄 **[Full playtest brief →](https://github.com/ds30mins/mercantail-pet-merge-prototype/blob/main/Mercantail_Playtest_Brief_ProductAnalyst_version.pdf)**  
+🗃️ **[Raw event log (XLSX, Google Drive) →](https://docs.google.com/spreadsheets/d/1u-zIol2KSGmu2L1KLi3ek9RgXd81DIkw/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)**
 
 ---
 
@@ -198,7 +198,7 @@ procrastinating behind data:
 - Park building, async social layer (friend visits, gifting)
 - Egg gacha, seasonal LiveOps events
 
-→ Full roadmap and KPI framework in the **[Portfolio Brief](https://docs.google.com/document/d/1kdmXRH-fLKDLwsC0hXd7te4QVDEc1wFu/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)**
+→ Full roadmap and KPI framework in the **[Portfolio Brief](https://github.com/ds30mins/mercantail-pet-merge-prototype/blob/main/Mercantail_Portfolio.pdf)**
 
 </details>
 
