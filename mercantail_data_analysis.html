@@ -267,7 +267,7 @@
 <span class="kw">FROM</span> session_summary s
 <span class="kw">LEFT JOIN</span> event_log e <span class="kw">ON</span> s.session = e.session
 <span class="kw">WHERE</span> s.churn_signal = <span class="str">'Y'</span>
-   <span class="kw">OR</span> s.session_length_s &lt; <span class="num">120</span>  <span class="cm">-- sessions under 2 min flagged for review</span>
+   <span class="kw">OR</span> s.session_length_s &lt; <span class="num">180</span>  <span class="cm">-- sessions under 3 min flagged for review</span>
 <span class="kw">GROUP BY</span> s.session
 <span class="kw">ORDER BY</span> s.session_length_s;</pre>
     </div>
@@ -612,7 +612,7 @@
         </div>
         <div class="liveops-metric">
           <div class="liveops-metric-label">Measure success by</div>
-          <div class="liveops-metric-value">D7 retention during event vs non-event cohort. DAU during event window. Season pass conversion rate ($4.99).</div>
+          <div class="liveops-metric-value">D7 retention during event vs non-event cohort. DAU during event window. Season pass conversion rate (price TBD pending meta layer validation).</div>
         </div>
       </div>
     </div>
