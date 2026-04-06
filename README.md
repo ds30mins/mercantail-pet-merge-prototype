@@ -24,6 +24,11 @@ a meta layer gives players a reason to return.
 >
 ><img width="412" height="790" alt="Screenshot 2026-03-25 124341" src="https://github.com/user-attachments/assets/d4c944ab-6fa0-40c5-9626-58fb50aad0d7" />
 
+> 📸 *Embedded event logger active during session — real-time event capture with full economy state*
+>
+> <img width="430" height="932" alt="Embedded event logger active during session" src="https://github.com/user-attachments/assets/e53e8501-eb01-4d5d-a9c4-de3281814732" />
+
+
 ---
 
 ## What Is Mercantail
