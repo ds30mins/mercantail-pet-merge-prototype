@@ -156,7 +156,8 @@
     <div class="header-sub">Event-level analysis of n=10 playtest sessions · 5,393 logged events · 17 dimensions · March 2026</div>
     <div class="meta-row">
       <div class="meta-item"><strong>Dataset:</strong> EventLog_Clean (5,393 rows)</div>
-      <div class="meta-item"><strong>Rich data sessions:</strong> S08, S10 (embedded logger)</div>
+      <div class="meta-item"><strong>17 dimensions:</strong> Auto_ID, Session, Player, Timestamp, Event_Type, Item_Path, Tier_Before, Tier_After, Energy_Before, Energy_After, Gold_Before, Gold_After, Order_Slot, Churn_Signal, Shop_Voluntary, Qualitative_Notes, Data_Type</div>
+      <div class="meta-item"><strong>Rich data sessions:</strong> S02, S08, S09, S10 (embedded logger)</div>
       <div class="meta-item"><strong>Players:</strong> P01–P08 (8 players, 10 sessions)</div>
       <div class="meta-item"><strong>Analyst:</strong> Diana Sinohardjo</div>
     </div>
@@ -170,7 +171,7 @@
       <h2>1. Session overview</h2>
       <span class="section-tag tag-engagement">Engagement</span>
     </div>
-    <p class="section-desc">Aggregated session metrics across all 10 sessions. Sessions S08 and S10 use Rich Data from the embedded in-game logger — full economy state, decimal timestamps, and complete item paths. All other sessions use Basic Data from manual event logging.</p>
+    <p class="section-desc">Aggregated session metrics across all 10 sessions. Sessions S02, S08, S09, and S10 are Rich Data — they have complete gold/energy state tracking, item paths, and decimal timestamps from the embedded in-game logger. All other sessions use Basic Data from manual event logging.</p>
 
     <div class="sql-block">
       <div class="sql-header">
@@ -184,8 +185,6 @@
   player,
   <span class="fn">ROUND</span>(session_length_s / <span class="num">60.0</span>, <span class="num">1</span>)           <span class="kw">AS</span> duration_min,
   total_events,
-  items_spawned,
-  items_merged,
   orders_fulfilled,
   energy_refills,
   <span class="fn">ROUND</span>(items_merged * <span class="num">1.0</span> / <span class="fn">NULLIF</span>(items_spawned, <span class="num">0</span>), <span class="num">2</span>) <span class="kw">AS</span> merge_ratio,
@@ -199,19 +198,19 @@
     <div class="result-label">Query result</div>
     <table>
       <thead>
-        <tr><th>Session</th><th>Player</th><th>Duration</th><th>Events</th><th>Orders</th><th>Merge ratio</th><th>Max tier</th><th>Churn</th><th>Data type</th></tr>
+        <tr><th>Session</th><th>Player</th><th>Duration</th><th>Events</th><th>Orders</th><th>Energy refills</th><th>Merge ratio</th><th>Max tier</th><th>Churn</th><th>Data type</th></tr>
       </thead>
       <tbody>
-        <tr class="highlight-row"><td>S08</td><td>P08</td><td>30.5 min</td><td>1,561</td><td>128</td><td><div class="bar-cell"><div class="bar" style="width:79px"></div>0.79</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-purple">Rich</span></td></tr>
-        <tr><td>S07</td><td>P07</td><td>15.0 min</td><td>520</td><td>39</td><td><div class="bar-cell"><div class="bar" style="width:72px"></div>0.72</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr><td>S05</td><td>P05</td><td>14.8 min</td><td>632</td><td>37</td><td><div class="bar-cell"><div class="bar" style="width:81px"></div>0.81</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr class="highlight-row"><td>S10</td><td>P08</td><td>27.5 min</td><td>1,602</td><td>144</td><td><div class="bar-cell"><div class="bar" style="width:78px"></div>0.78</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-purple">Rich</span></td></tr>
-        <tr><td>S06</td><td>P06</td><td>9.4 min</td><td>453</td><td>39</td><td><div class="bar-cell"><div class="bar" style="width:67px"></div>0.67</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr><td>S04</td><td>P04</td><td>8.6 min</td><td>414</td><td>47</td><td><div class="bar-cell"><div class="bar" style="width:68px"></div>0.68</div></td><td><span class="badge badge-teal">T4</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr><td>S02</td><td>P02</td><td>3.2 min</td><td>64</td><td>3</td><td><div class="bar-cell"><div class="bar" style="width:59px"></div>0.59</div></td><td><span class="badge badge-teal">T4</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr><td>S09</td><td>P02</td><td>2.5 min</td><td>68</td><td>4</td><td><div class="bar-cell"><div class="bar" style="width:87px"></div>0.87</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr><td>S01</td><td>P01</td><td>2.1 min</td><td>63</td><td>8</td><td><div class="bar-cell"><div class="bar" style="width:47px"></div>0.47</div></td><td><span class="badge badge-amber">T3</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr class="churn-row"><td>S03</td><td>P03</td><td>0.8 min</td><td>16</td><td>2</td><td><div class="bar-cell"><div class="bar" style="width:0px"></div>0.00</div></td><td><span class="badge badge-red">T1</span></td><td><span class="badge badge-red">Yes</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
+        <tr class="highlight-row"><td>S08</td><td>P08</td><td>30.5 min</td><td>1,561</td><td>128</td><td>69</td><td><div class="bar-cell"><div class="bar" style="width:79px"></div>0.79</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-purple">Rich</span></td></tr>
+        <tr class="highlight-row"><td>S10</td><td>P08</td><td>27.5 min</td><td>1,602</td><td>144</td><td>70</td><td><div class="bar-cell"><div class="bar" style="width:78px"></div>0.78</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-purple">Rich</span></td></tr>
+        <tr><td>S07</td><td>P07</td><td>15.0 min</td><td>520</td><td>39</td><td>21</td><td><div class="bar-cell"><div class="bar" style="width:72px"></div>0.72</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
+        <tr><td>S05</td><td>P05</td><td>14.8 min</td><td>632</td><td>37</td><td>32</td><td><div class="bar-cell"><div class="bar" style="width:81px"></div>0.81</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
+        <tr><td>S06</td><td>P06</td><td>9.4 min</td><td>453</td><td>39</td><td>17</td><td><div class="bar-cell"><div class="bar" style="width:67px"></div>0.67</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
+        <tr><td>S04</td><td>P04</td><td>8.6 min</td><td>414</td><td>47</td><td>25</td><td><div class="bar-cell"><div class="bar" style="width:68px"></div>0.68</div></td><td><span class="badge badge-teal">T4</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
+        <tr class="highlight-row"><td>S02</td><td>P02</td><td>3.2 min</td><td>64</td><td>3</td><td>2</td><td><div class="bar-cell"><div class="bar" style="width:59px"></div>0.59</div></td><td><span class="badge badge-teal">T4</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-purple">Rich</span></td></tr>
+        <tr class="highlight-row"><td>S09</td><td>P02</td><td>2.5 min</td><td>68</td><td>4</td><td>3</td><td><div class="bar-cell"><div class="bar" style="width:87px"></div>0.87</div></td><td><span class="badge badge-purple">T5</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-purple">Rich</span></td></tr>
+        <tr><td>S01</td><td>P01</td><td>2.1 min</td><td>63</td><td>8</td><td>2</td><td><div class="bar-cell"><div class="bar" style="width:47px"></div>0.47</div></td><td><span class="badge badge-amber">T3</span></td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
+        <tr class="churn-row"><td>S03</td><td>P03</td><td>0.8 min</td><td>16</td><td>2</td><td>0</td><td><div class="bar-cell"><div class="bar" style="width:0px"></div>0.00</div></td><td><span class="badge badge-red">T1</span></td><td><span class="badge badge-red">Yes</span></td><td><span class="badge badge-amber">Basic</span></td></tr>
       </tbody>
     </table>
 
@@ -253,22 +252,19 @@
         <button class="sql-copy" onclick="copySQL(this)">Copy</button>
       </div>
       <pre><span class="cm">-- Identify sessions with churn signals and their characteristics
--- Churn defined as: session_ended before first energy gate OR no merges completed</span>
+-- Churn defined as: session_ended before first energy gate OR no merges completed
+-- Note: Churn_Signal in event_log marks friction shop_opens (S08/S10 only).
+-- Session-level churn comes from session_summary.churn_signal</span>
 <span class="kw">SELECT</span>
   s.session,
   s.player,
   s.session_length_s,
   s.items_merged,
   s.max_tier_reached,
-  s.churn_signal,
-  <span class="fn">COUNT</span>(e.auto_id)                   <span class="kw">AS</span> events_before_churn,
-  <span class="fn">MIN</span>(e.timestamp)                   <span class="kw">AS</span> first_event_ts,
-  <span class="fn">MAX</span>(e.timestamp)                   <span class="kw">AS</span> last_event_ts
+  s.churn_signal
 <span class="kw">FROM</span> session_summary s
-<span class="kw">LEFT JOIN</span> event_log e <span class="kw">ON</span> s.session = e.session
 <span class="kw">WHERE</span> s.churn_signal = <span class="str">'Y'</span>
    <span class="kw">OR</span> s.session_length_s &lt; <span class="num">180</span>  <span class="cm">-- sessions under 3 min flagged for review</span>
-<span class="kw">GROUP BY</span> s.session
 <span class="kw">ORDER BY</span> s.session_length_s;</pre>
     </div>
 
@@ -331,21 +327,21 @@
       </thead>
       <tbody>
         <tr><td>S01</td><td>2</td><td>2</td><td>—</td><td>—</td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr><td>S02</td><td>2</td><td>4</td><td>—</td><td>—</td><td><span class="badge badge-amber">Basic</span></td></tr>
+        <tr class="highlight-row"><td>S02</td><td>2</td><td>4</td><td>—</td><td>—</td><td><span class="badge badge-purple">Rich</span></td></tr>
         <tr class="churn-row"><td>S03</td><td>0</td><td>0</td><td>—</td><td>—</td><td><span class="badge badge-amber">Basic</span></td></tr>
         <tr><td>S04</td><td>25</td><td>38</td><td>—</td><td>—</td><td><span class="badge badge-amber">Basic</span></td></tr>
         <tr><td>S05</td><td>32</td><td>38</td><td>—</td><td>—</td><td><span class="badge badge-amber">Basic</span></td></tr>
         <tr><td>S06</td><td>17</td><td>23</td><td>—</td><td>—</td><td><span class="badge badge-amber">Basic</span></td></tr>
         <tr><td>S07</td><td>21</td><td>33</td><td>—</td><td>—</td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr class="highlight-row"><td>S08</td><td>69</td><td>98</td><td>Captured in logger</td><td>Captured in logger</td><td><span class="badge badge-purple">Rich</span></td></tr>
-        <tr><td>S09</td><td>3</td><td>4</td><td>—</td><td>—</td><td><span class="badge badge-amber">Basic</span></td></tr>
-        <tr class="highlight-row"><td>S10</td><td>70</td><td>106</td><td>Captured in logger</td><td>Captured in logger</td><td><span class="badge badge-purple">Rich</span></td></tr>
+        <tr class="highlight-row"><td>S08</td><td>69</td><td>98</td><td>0</td><td>98</td><td><span class="badge badge-purple">Rich</span></td></tr>
+        <tr class="highlight-row"><td>S09</td><td>3</td><td>4</td><td>—</td><td>—</td><td><span class="badge badge-purple">Rich</span></td></tr>
+        <tr class="highlight-row"><td>S10</td><td>70</td><td>106</td><td>1</td><td>105</td><td><span class="badge badge-purple">Rich</span></td></tr>
       </tbody>
     </table>
 
     <div class="insight insight-monetisation">
       <strong>Monetisation finding: gate triggers reliably — context is always friction</strong>
-      <p>9 of 10 sessions triggered the energy gate and opened the shop. The monetisation moment is reliably produced. However, shop opens track energy refill events almost exactly across all sessions — meaning players open the shop because they're blocked, not because they want to spend. First-purchase conversion will remain low until the shop can also be reached in an aspiration context. P08 flagged sell prices as too low relative to refill cost — an economy calibration signal surfaced independently, not in response to a prompt.</p>
+      <p>9 of 10 sessions triggered the energy gate and opened the shop. The monetisation moment is reliably produced. However, shop opens track energy refill events almost exactly across all sessions — meaning players open the shop because they're blocked, not because they want to spend. S08 had 0 voluntary opens (100% friction); S10 had just 1. First-purchase conversion will remain low until the shop can also be reached in an aspiration context. P08 flagged sell prices as too low relative to refill cost — an economy calibration signal surfaced independently, not in response to a prompt.</p>
       <div class="rec"><span>LiveOps recommendation:</span> Delay the first energy gate by ~50% to allow players to experience one full order cycle before hitting a monetisation moment. Measure: shop open rate before vs after gate delay. Success = same shop open rate, higher first-purchase conversion rate.</div>
     </div>
   </div>
@@ -443,17 +439,20 @@
         <button class="sql-copy" onclick="copySQL(this)">Copy</button>
       </div>
       <pre><span class="cm">-- Gold economy: earnings, spend, and net trajectory
--- Segmented by event type to identify earn vs burn pattern
+-- gold_start = gold_before of first event (FIRST_VALUE by timestamp)
+-- gold_end   = gold_before of session_ended event (final snapshot before close)
 -- Rich Data sessions only (S08, S10)</span>
 <span class="kw">SELECT</span>
   session,
+  <span class="fn">FIRST_VALUE</span>(gold_before) <span class="kw">OVER</span> (
+    <span class="kw">PARTITION BY</span> session <span class="kw">ORDER BY</span> timestamp
+  )                                                 <span class="kw">AS</span> gold_start,
+  <span class="fn">MAX</span>(<span class="kw">CASE WHEN</span> event_type = <span class="str">'session_ended'</span>
+        <span class="kw">THEN</span> gold_before <span class="kw">END</span>)                         <span class="kw">AS</span> gold_end,
   <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> event_type = <span class="str">'order_fulfilled'</span>
         <span class="kw">THEN</span> gold_after - gold_before <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>)  <span class="kw">AS</span> gold_earned,
   <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> event_type = <span class="str">'energy_refilled'</span>
         <span class="kw">THEN</span> gold_before - gold_after <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>)  <span class="kw">AS</span> gold_spent,
-  <span class="fn">MIN</span>(gold_before)                                  <span class="kw">AS</span> gold_start,
-  <span class="fn">MAX</span>(<span class="kw">CASE WHEN</span> gold_after > <span class="num">0</span>
-        <span class="kw">THEN</span> gold_after <span class="kw">END</span>)                         <span class="kw">AS</span> gold_end,
   <span class="fn">ROUND</span>(
     <span class="fn">AVG</span>(<span class="kw">CASE WHEN</span> event_type = <span class="str">'order_fulfilled'</span>
           <span class="kw">THEN</span> gold_after - gold_before <span class="kw">END</span>), <span class="num">1</span>
@@ -471,8 +470,8 @@
         <tr><th>Session</th><th>Gold start</th><th>Gold end</th><th>Net change</th><th>Gold earned</th><th>Gold spent</th><th>Avg gold/order</th><th>Orders</th></tr>
       </thead>
       <tbody>
-        <tr class="highlight-row"><td>S08</td><td>250</td><td>2,018</td><td>+1,768</td><td>~8,800</td><td>~7,032</td><td>68.8</td><td>128</td></tr>
-        <tr class="highlight-row"><td>S10</td><td>250</td><td>3,220</td><td>+2,970</td><td>~9,950</td><td>~6,980</td><td>69.2</td><td>144</td></tr>
+        <tr class="highlight-row"><td>S08</td><td>250</td><td>2,018</td><td>+1,768</td><td>8,802</td><td>6,900</td><td>68.8</td><td>128</td></tr>
+        <tr class="highlight-row"><td>S10</td><td>250</td><td>3,220</td><td>+2,970</td><td>9,970</td><td>7,000</td><td>69.2</td><td>144</td></tr>
       </tbody>
     </table>
 
@@ -612,7 +611,7 @@
         </div>
         <div class="liveops-metric">
           <div class="liveops-metric-label">Measure success by</div>
-          <div class="liveops-metric-value">D7 retention during event vs non-event cohort. DAU during event window. Season pass conversion rate (price TBD pending meta layer validation).</div>
+          <div class="liveops-metric-value">D7 retention during event vs non-event cohort. DAU during event window.</div>
         </div>
       </div>
     </div>
@@ -729,13 +728,13 @@ new Chart(document.getElementById('goldChart'), {
     datasets: [
       {
         label: 'S08',
-        data: [250,414,556,1117,1313,1351,1369,1421,1497,1588,1570,2106,2034,1858,2037,2114,null],
+        data: [250,414,556,1017,1313,1351,1369,1318,1497,1588,1570,2106,2034,1958,2037,2214,null],
         borderColor: purple, backgroundColor: purpleLight,
         tension: 0.3, fill: false, pointRadius: 3,
       },
       {
         label: 'S10',
-        data: [250,306,352,580,678,442,433,822,1052,1023,1200,1809,1618,2128,2499,2832,3220],
+        data: [250,276,352,680,678,542,433,822,975,1123,1200,1809,1618,2101,2499,2832,3220],
         borderColor: teal, backgroundColor: tealLight,
         tension: 0.3, fill: false, pointRadius: 3,
       }
