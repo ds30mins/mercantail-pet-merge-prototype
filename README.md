@@ -108,16 +108,15 @@ Two logging methods were used across sessions:
 | Manual event logging | S01–S07, S09 | Spawn, merge, order, shop, energy events |
 | Embedded in-game logger | S08, S10 (P08) | All of the above + item paths, decimal timestamps, full economy state (gold & energy before/after every event) — output to CSV |
 
-### SQL Queries Written
+### SQL Queries to Answer Questions
 
 | Query | What it answers |
 |---|---|
 | Session summary | How long did each session last, how many orders were fulfilled, how efficiently did players merge? |
 | Event breakdown | What did players actually do — and how often — across all 10 sessions? |
-| Player funnel | Where did players drop off, from first spawn to max tier reached? |
+| Churn signals | Which sessions showed early exit or disengagement — and what preceded it? |
 | Gold economy | How did P08's gold balance grow and shrink across both long sessions? |
-| Energy pattern | How frequently did players hit the energy gate, and how did that change across sessions? |
-| Session quality | Which sessions showed strong engagement vs early exit — and why? |
+| P08 longitudinal | How did P08's efficiency and behavior change between their first and second session? |
 
 ### Key Findings
 
