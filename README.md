@@ -79,7 +79,7 @@ order, or sell lower-tier items to refill energy now?
 
 | Finding | Signal | Disposition |
 |---|---|---|
-| Order fulfillment — 100% of sessions | Every session included at least one fulfilled order. Commerce loop is intrinsically motivating once players understand it. | Core loop validated. Green light to build the meta layer. |
+| Every player engaged with the order system | Every session included at least one fulfilled order. Commerce loop is intrinsically motivating once players understand it. | Core loop validated. Green light to build the meta layer. |
 | Session length is bimodal | Under 3 min or over 8 min — no middle ground. P08's two sessions ran 27 and 30 minutes, placing them in the top 1% of mobile session lengths (GameAnalytics 2025). | Onboarding is the lever. Test next. |
 | Tier 5 has no purpose | 6 of 10 sessions reached max tier — but there are no Tier 5 orders. Players who invested found no reward. | Unambiguous design gap. Implement next. |
 | Four players independently raised the same gap | No escalating challenge, no progression structure, no win condition. Convergent unprompted feedback across four players. | Which meta layer earns stronger retention? A/B test next. |
@@ -122,7 +122,7 @@ Two logging methods were used across sessions:
 
 | Finding | Signal | Disposition |
 |---|---|---|
-| 100% order fulfillment | Core loop is intrinsically motivating | ✅ Green light for meta layer |
+| 100% order fulfillment engagement | Core loop is intrinsically motivating | ✅ Green light for meta layer |
 | Tier 5 has no purpose | Players who reach max tier find no reward | 🔨 Implement next |
 | Bimodal session distribution | Under 3 min or over 8 min — no middle ground | 🧪 Test (onboarding) |
 | Energy gate is friction-only | Shop always reactive, never aspirational | 🔨 Implement next |
