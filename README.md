@@ -112,12 +112,12 @@ Two logging methods were used across sessions:
 
 | Query | What it answers |
 |---|---|
-| Session summary | Duration, orders, merge ratio per session |
-| Event breakdown | COUNT(CASE WHEN) pivot of all event types by session |
-| Player funnel | UNION ALL across 7 funnel stages from raw event log |
-| Gold economy | Time-series gold tracking for P08 (Rich Data only) |
-| Energy pattern | Energy drain & refill cycle across P08's two sessions |
-| Session quality | JOIN between summary + events tables with CASE WHEN classification |
+| Session summary | How long did each session last, how many orders were fulfilled, how efficiently did players merge? |
+| Event breakdown | What did players actually do — and how often — across all 10 sessions? |
+| Player funnel | Where did players drop off, from first spawn to max tier reached? |
+| Gold economy | How did P08's gold balance grow and shrink across both long sessions? |
+| Energy pattern | How frequently did players hit the energy gate, and how did that change across sessions? |
+| Session quality | Which sessions showed strong engagement vs early exit — and why? |
 
 ### Key Findings
 
