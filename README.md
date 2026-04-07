@@ -10,8 +10,8 @@ a meta layer gives players a reason to return.
 |---|---|
 | [▶ Play the prototype](https://ds30mins.github.io/mercantail-pet-merge-prototype/) | Playable in browser — no install needed |
 | [📊 SQL data analysis](https://ds30mins.github.io/mercantail-pet-merge-prototype/mercantail_data_analysis.html) | 6 SQL queries, 5,393 events, interactive charts |
-| [📄 Playtest brief](https://github.com/ds30mins/mercantail-pet-merge-prototype/blob/main/Mercantail_Playtest_Brief_ProductAnalyst_version.pdf) | n=10 sessions, 7 findings, A/B test designs |
-| [📋 Portfolio brief](https://github.com/ds30mins/mercantail-pet-merge-prototype/blob/main/Mercantail_Portfolio.pdf) | Market research, concept, prototype scope, roadmap |
+| [📄 Playtest brief](https://ds30mins.github.io/mercantail-pet-merge-prototype/Mercantail_Playtest_Brief_ProductAnalyst_version.pdf) | n=10 sessions, 7 findings, A/B test designs |
+| [📋 Portfolio brief](https://ds30mins.github.io/mercantail-pet-merge-prototype/Mercantail_Portfolio.pdf) | Market research, concept, prototype scope, roadmap |
 
 
 ---
@@ -130,7 +130,7 @@ Two logging methods were used across sessions:
 | 4 players independently flagged missing progression | Strongest convergent signal in dataset | 🧪 Test (meta layer) |
 | 3 players independently requested tutorial | Confirmed by S03 early churn data | 🧪 Test (onboarding) |
 
-📄 **[Full playtest brief →](https://github.com/ds30mins/mercantail-pet-merge-prototype/blob/main/Mercantail_Playtest_Brief_ProductAnalyst_version.pdf)**  
+📄 **[Full playtest brief →](https://ds30mins.github.io/mercantail-pet-merge-prototype/Mercantail_Playtest_Brief_ProductAnalyst_version.pdf)**  
 🗃️ **[Raw event log (XLSX, Google Drive) →](https://docs.google.com/spreadsheets/d/1u-zIol2KSGmu2L1KLi3ek9RgXd81DIkw/edit?usp=sharing&ouid=111557979061720829115&rtpof=true&sd=true)**
 
 ---
@@ -203,7 +203,7 @@ procrastinating behind data:
 - Park building, async social layer (friend visits, gifting)
 - Egg gacha, seasonal LiveOps events
 
-→ Full roadmap and KPI framework in the **[Portfolio Brief](https://github.com/ds30mins/mercantail-pet-merge-prototype/blob/main/Mercantail_Portfolio.pdf)**
+→ Full roadmap and KPI framework in the **[Portfolio Brief](https://ds30mins.github.io/mercantail-pet-merge-prototype/Mercantail_Portfolio.pdf)**
 
 </details>
 
