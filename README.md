@@ -9,8 +9,8 @@ a meta layer gives players a reason to return.
 | Artifact | What it is |
 |---|---|
 | [▶ Play the prototype](https://ds30mins.github.io/mercantail-pet-merge-prototype/) | Playable in browser — no install needed |
-| [📊 SQL data analysis](https://ds30mins.github.io/mercantail-pet-merge-prototype/mercantail_data_analysis.html) | 6 SQL queries, 5,393 events, interactive charts |
-| [📄 Playtest brief](https://ds30mins.github.io/mercantail-pet-merge-prototype/Mercantail_Playtest_Brief_ProductAnalyst_version.pdf) | n=10 sessions, 7 findings, A/B test designs |
+| [📊 SQL data analysis](https://ds30mins.github.io/mercantail-pet-merge-prototype/mercantail_data_analysis.html) | SQL queries & data analysis, 5,393 events, interactive charts |
+| [📄 Playtest brief](https://ds30mins.github.io/mercantail-pet-merge-prototype/Mercantail_Playtest_Brief_ProductAnalyst_version.pdf) | Playtest results from n=10 sessions, 7 findings, A/B test designs |
 | [📋 Portfolio brief](https://ds30mins.github.io/mercantail-pet-merge-prototype/Mercantail_Portfolio.pdf) | Market research, concept, prototype scope, roadmap |
 
 
